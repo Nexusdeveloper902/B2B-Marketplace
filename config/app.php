@@ -86,6 +86,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Supported Locales
+    |--------------------------------------------------------------------------
+    |
+    | Locales the storefront is allowed to resolve or switch to. The bilingual
+    | storefront ships English and Spanish (see ADR-003).
+    |
+    */
+
+    'supported_locales' => array_filter(explode(',', (string) env('APP_SUPPORTED_LOCALES', 'en,es'))),
+
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |
