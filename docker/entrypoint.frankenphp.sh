@@ -22,9 +22,9 @@ set -eu
 APP_DIR="${APP_DIR:-/app}"
 cd "$APP_DIR"
 
-# Diagnostics: trace to stderr so Vercel logs show what happened.
-set -x
-
+# Lightweight startup banner (kept for Vercel log visibility).
+# Note: `set -x` was used during debugging (RUN-011) but removed once
+# the deployment was confirmed working — it produced excessive log noise.
 echo "=== FrankenPHP entrypoint START ===" >&2
 echo "APP_DIR=$APP_DIR" >&2
 echo "PORT=${PORT:-<unset, Caddyfile defaults to 80>}" >&2
@@ -149,9 +149,9 @@ export APP_MAINTENANCE_STORE=array
 export LOG_CHANNEL=stderr
 export LOG_STACK=stderr
 
-# APP_DEBUG → true temporarily to expose any remaining errors. Set to false
-# once the deployment is confirmed working.
-export APP_DEBUG=true
+# APP_DEBUG → false (production). Was set to true during RUN-011 debugging
+# to expose bootstrap errors; reverted now that the deployment is confirmed working.
+export APP_DEBUG=false
 export APP_ENV=production
 
 echo "VIEW_COMPILED_PATH=$VIEW_COMPILED_PATH" >&2
