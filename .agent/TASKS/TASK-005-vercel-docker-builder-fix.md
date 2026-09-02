@@ -101,7 +101,7 @@ Content updates:
 
 ## Commits
 
-### Commit — {{COMMIT_HASH}}
+### Commit — 9f98580
 Date: 2026-09-02
 Branch: main
 

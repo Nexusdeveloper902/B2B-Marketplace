@@ -80,7 +80,7 @@ to work but requires a Render-dashboard Dockerfile-path setting update.
   immutable historical context, not orphans to be cleaned up.
 
 ## Current Main Commit
-(recorded after `git commit` + `git push`)
+9f98580 — fix(vercel): switch from deprecated @vercel/docker builder to native auto-detection
 
 ## Current Main Status
 BUILDABLE — additive change only (1 file deleted, 2 files renamed, 4

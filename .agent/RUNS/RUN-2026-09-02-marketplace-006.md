@@ -86,7 +86,7 @@ were updated in both files).
 - .agent/STATE/SNAPSHOT-RUN-2026-09-02-marketplace-006.md (new)
 
 ## Commits Created
-- (hash recorded in TASK-005 commit entry after `git commit`)
+- 9f98580 — fix(vercel): switch from deprecated @vercel/docker builder to native auto-detection
 
 ## Branches
 - main (direct commit — single coherent fix-the-Vercel-build unit of
