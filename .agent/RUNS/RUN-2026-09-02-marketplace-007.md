@@ -68,7 +68,7 @@ point (ADR-008).
 - .agent/STATE/SNAPSHOT-RUN-2026-09-02-marketplace-007.md (new)
 
 ## Commits Created
-- (hash recorded in TASK-006 commit entry after `git commit`)
+- e422ae6 — fix(vercel): always materialize DB_DATABASE into .env to fix request-time DB crash
 
 ## Branches
 - main (direct commit — single coherent fix-the-Vercel-runtime-crash

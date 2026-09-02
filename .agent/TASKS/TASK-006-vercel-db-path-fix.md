@@ -97,7 +97,7 @@ consequences future agents must preserve.
 
 ## Commits
 
-### Commit — {{COMMIT_HASH}}
+### Commit — e422ae6
 Date: 2026-09-02
 Branch: main
 

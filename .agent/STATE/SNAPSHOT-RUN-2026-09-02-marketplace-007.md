@@ -81,7 +81,7 @@ work unchanged.
   must NOT "fix" this divergence by making the entrypoints match.
 
 ## Current Main Commit
-(recorded after `git commit` + `git push`)
+e422ae6 — fix(vercel): always materialize DB_DATABASE into .env to fix request-time DB crash
 
 ## Current Main Status
 BUILDABLE — single-file change to `docker/entrypoint.vercel.sh` plus 6
