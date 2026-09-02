@@ -42,6 +42,8 @@ RUN composer dump-autoload --optimize --no-interaction
 # php:8.4-apache already ships every extension this app requires:
 # pdo_sqlite, sqlite3, mbstring, openssl, dom, tokenizer, ctype, curl,
 # fileinfo. Nothing is compiled beyond OPcache.
+# Note: the lockfile's Symfony components set a PHP >= 8.4.1 floor — the
+# 8.4 tag tracks the latest patch release, so it always satisfies it.
 # ---------------------------------------------------------------------------
 FROM php:${PHP_VERSION}-apache
 
