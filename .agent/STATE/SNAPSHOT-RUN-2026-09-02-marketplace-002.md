@@ -43,7 +43,9 @@ TASK-001-marketplace-mvp COMPLETED, merged to main, pushed to origin.
 - Fonts self-hosted in public/fonts — demo works offline
 
 ## Current Main Commit
-180eb79 (origin/main)
+180eb79 = last functional main commit (all code + merges; verified from a
+fresh clone). Trailing docs-only commits from this run's report finalization
+follow on top of it (see git log); they contain no application changes.
 
 ## Current Main Status
 BUILDABLE (fresh-clone verified: install, migrate, serve, tests all pass)
