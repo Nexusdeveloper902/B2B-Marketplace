@@ -50,8 +50,11 @@ docker run --rm -p 8080:80 presence-platform-storefront
 
 The entrypoint prepares writable directories, creates and migrates the SQLite
 database on first start (idempotently on every start), then hands off to
-Apache. The tracked `.env` is part of the image and contains no secrets; any
-variable passed with `-e KEY=value` overrides it at runtime.
+Apache. The tracked `.env` is part of the image and contains no secrets (local
+SQLite, no mail/API credentials). `docker-compose.yml` places the database on
+a persistent volume by passing `DB_DATABASE`, which the entrypoint applies to
+the app configuration at startup; any other variable you pass with
+`-e KEY=value` is available to the entrypoint and CLI.
 
 For a persistent deployment — contact submissions survive rebuilds:
 

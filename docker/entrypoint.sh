@@ -32,9 +32,8 @@ mkdir -p "$DB_DIR"
 
 # 3. Encryption key. The tracked .env ships in the image and holds no
 #    secrets; keep zero-config startup, but cover the case where .env was
-#    excluded from the build or stripped of its key. A real APP_KEY
-#    environment variable always wins, so the key is never regenerated
-#    when one is provided.
+#    excluded from the build or stripped of its key. When APP_KEY is set
+#    as a real environment variable, generation is skipped entirely.
 if [ ! -f .env ] && [ -f .env.example ]; then
     cp .env.example .env
 fi
@@ -42,6 +41,19 @@ if [ -f .env ] \
     && [ -z "${APP_KEY:-}" ] \
     && ! grep -q '^APP_KEY=base64:' .env; then
     php artisan key:generate --force
+fi
+
+# 3b. Database location. When DB_DATABASE is provided (docker-compose.yml
+#     does, to place SQLite on a volume), apply it to .env: web SAPIs do
+#     not reliably expose container environment variables to PHP, but
+#     every runtime reads .env. The CLI (migrate below) sees the real
+#     environment variable directly; both resolve to the same file.
+if [ -n "${DB_DATABASE:-}" ] && [ -f .env ]; then
+    if grep -q '^DB_DATABASE=' .env; then
+        sed -i "s|^DB_DATABASE=.*|DB_DATABASE=$DB_DATABASE|" .env
+    else
+        printf '\nDB_DATABASE=%s\n' "$DB_DATABASE" >> .env
+    fi
 fi
 
 # 4. Migrations (Laravel would auto-create the SQLite file as well; the
