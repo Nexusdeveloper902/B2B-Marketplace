@@ -113,6 +113,15 @@ export SESSION_DRIVER="${SESSION_DRIVER:-cookie}"
 # Cache → array driver (no file I/O, no DB I/O — in-memory per request)
 export CACHE_STORE="${CACHE_STORE:-array}"
 
+# Maintenance mode → cache driver with array store (no file I/O, no DB I/O).
+# The default 'file' driver writes to storage/framework/ which is read-only
+# on Vercel, causing MaintenanceModeManager::getDefaultDriver() to crash
+# during bootstrap (ArgumentCountError at Manager::createDriver).
+# The 'cache' driver with 'array' store is per-request, non-persistent,
+# but we never enable maintenance mode on this demo anyway.
+export APP_MAINTENANCE_DRIVER="${APP_MAINTENANCE_DRIVER:-cache}"
+export APP_MAINTENANCE_STORE="${APP_MAINTENANCE_STORE:-array}"
+
 # Logs → stderr (captured by Vercel's log system, no file I/O)
 export LOG_CHANNEL="${LOG_CHANNEL:-stderr}"
 export LOG_STACK="${LOG_STACK:-stderr}"
