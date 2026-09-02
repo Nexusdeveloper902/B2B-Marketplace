@@ -46,7 +46,7 @@ pass OS env vars to PHP.
 - .agent/STATE/SNAPSHOT-RUN-2026-09-02-marketplace-010.md (new)
 
 ## Commits Created
-- (hash recorded after commit)
+- 0d4feba — fix(vercel): switch from Apache+mod_php to FrankenPHP
 
 ## Verification
 - sh -n docker/entrypoint.frankenphp.sh: PASS

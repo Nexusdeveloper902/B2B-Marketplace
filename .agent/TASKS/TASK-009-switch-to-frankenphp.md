@@ -35,5 +35,5 @@ request at `DatabaseManager.php line 226`.
 
 ## Commits
 
-### Commit — {{COMMIT_HASH}}
+### Commit — 0d4feba
 See RUN-2026-09-02-marketplace-010 for details.

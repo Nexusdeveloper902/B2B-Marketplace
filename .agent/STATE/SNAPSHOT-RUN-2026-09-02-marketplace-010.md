@@ -25,7 +25,7 @@ recommended PHP runtime). Pending user-side Vercel redeploy.
 - vercel.json unchanged (services + runtime:container + rewrites).
 
 ## Current Main Commit
-(recorded after commit + push)
+0d4feba — fix(vercel): switch from Apache+mod_php to FrankenPHP
 
 ## Current Main Status
 BUILDABLE — new Dockerfile.vercel + Caddyfile + entrypoint; Render unchanged.
