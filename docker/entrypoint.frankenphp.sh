@@ -83,6 +83,51 @@ echo "DB file: $DB_FILE" >&2
 export DB_DATABASE="$DB_FILE"
 
 # ---------------------------------------------------------------------------
+# 2b. Override ALL storage paths via env vars (FrankenPHP reads them natively).
+#
+#     On Vercel, /app is in the read-only image layer. The storage/ symlink
+#     approach (step 1) fails silently because rm -rf storage can't execute
+#     on a read-only filesystem. Without these env var overrides, Laravel
+#     crashes during bootstrap because it can't:
+#       - Compile Blade views (storage/framework/views/)
+#       - Write session files (storage/framework/sessions/)
+#       - Write cache files (storage/framework/cache/data/)
+#       - Write logs (storage/logs/)
+#
+#     These env vars are read by FrankenPHP → PHP → Laravel's env(), which
+#     overrides the config defaults. This is the ONLY reliable way to redirect
+#     Laravel's file I/O on a read-only filesystem.
+# ---------------------------------------------------------------------------
+mkdir -p \
+    "$EPHEMERAL_ROOT/framework/views" \
+    "$EPHEMERAL_ROOT/framework/sessions" \
+    "$EPHEMERAL_ROOT/framework/cache/data" \
+    "$EPHEMERAL_ROOT/logs"
+
+# Blade compiled views → /tmp (read by config/view.php via VIEW_COMPILED_PATH)
+export VIEW_COMPILED_PATH="$EPHEMERAL_ROOT/framework/views"
+
+# Sessions → cookie driver (no file I/O, no DB I/O — safest for ephemeral FS)
+export SESSION_DRIVER="${SESSION_DRIVER:-cookie}"
+
+# Cache → array driver (no file I/O, no DB I/O — in-memory per request)
+export CACHE_STORE="${CACHE_STORE:-array}"
+
+# Logs → stderr (captured by Vercel's log system, no file I/O)
+export LOG_CHANNEL="${LOG_CHANNEL:-stderr}"
+export LOG_STACK="${LOG_STACK:-stderr}"
+
+# APP_DEBUG → true temporarily to expose any remaining errors. Set to false
+# once the deployment is confirmed working.
+export APP_DEBUG="${APP_DEBUG:-true}"
+export APP_ENV="${APP_ENV:-production}"
+
+echo "VIEW_COMPILED_PATH=$VIEW_COMPILED_PATH" >&2
+echo "SESSION_DRIVER=$SESSION_DRIVER" >&2
+echo "CACHE_STORE=$CACHE_STORE" >&2
+echo "LOG_CHANNEL=$LOG_CHANNEL" >&2
+
+# ---------------------------------------------------------------------------
 # 3. APP_KEY — generate if not set. FrankenPHP passes it to PHP natively.
 # ---------------------------------------------------------------------------
 if [ ! -f .env ] && [ -f .env.example ]; then
