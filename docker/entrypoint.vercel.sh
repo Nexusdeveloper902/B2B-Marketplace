@@ -1,0 +1,139 @@
+#!/bin/sh
+# Presence Platform — Marketplace Storefront: Vercel container entrypoint.
+#
+# Vercel-specific variant of docker/entrypoint.sh. Differences from the
+# Render entrypoint:
+#
+#   1. Writable runtime state is relocated to /tmp (the only location
+#      guaranteed writable on Vercel's ephemeral container filesystem).
+#      Laravel's storage/ tree is symlinked there; the SQLite database
+#      file lives there too. Cold restart loses everything in /tmp — see
+#      .agent/OBSERVATIONS/OBS-007-vercel-ephemeral-filesystem.md.
+#
+#   2. Apache's listen port is patched from $PORT at startup (Vercel
+#      injects PORT; Apache's Listen directive cannot read env vars at
+#      parse time, so the entrypoint substitutes the placeholder in
+#      vhost.vercel.conf).
+#
+#   3. The chown step is skipped when the entrypoint is not running as
+#      root — Vercel may invoke the container as a non-root user.
+#
+# Everything else mirrors docker/entrypoint.sh per ADR-004 (DB key bootstrap,
+# materialize DB_DATABASE into .env per OBS-005, idempotent migrate).
+
+set -eu
+
+APP_DIR="${APP_DIR:-/var/www/html}"
+cd "$APP_DIR"
+
+# ---------------------------------------------------------------------------
+# 1. Writable runtime directories — relocated to /tmp because Vercel's
+#    container filesystem is ephemeral. /var/www/html itself may be
+#    read-only in some Vercel configurations; /tmp is the canonical
+#    writable scratch space.
+# ---------------------------------------------------------------------------
+EPHEMERAL_ROOT="${EPHEMERAL_ROOT:-/tmp/storefront}"
+STORAGE_DIR="$EPHEMERAL_ROOT/storage"
+
+mkdir -p \
+    "$STORAGE_DIR/framework/cache/data" \
+    "$STORAGE_DIR/framework/sessions" \
+    "$STORAGE_DIR/framework/views" \
+    "$STORAGE_DIR/logs" \
+    bootstrap/cache
+
+# Replace the shipped storage/ with a symlink to the ephemeral tree so
+# Laravel's compiled views, sessions, cache, and logs land somewhere
+# writable. The image-shipped storage/ tree is preserved in git via
+# .gitignore placeholder files only; nothing of value is destroyed here.
+if [ ! -L storage ]; then
+    rm -rf storage
+    ln -s "$STORAGE_DIR" storage
+fi
+
+# ---------------------------------------------------------------------------
+# 2. SQLite database file — ephemeral on Vercel. /tmp is the only location
+#    guaranteed to survive across Apache worker forks within a single
+#    container lifetime; on cold start, /tmp is wiped and the entrypoint
+#    re-creates the file and re-runs migrations below. Contact submissions
+#    made before a cold restart WILL be lost. Documented in OBS-007.
+# ---------------------------------------------------------------------------
+DB_FILE="${DB_DATABASE:-$EPHEMERAL_ROOT/database.sqlite}"
+DB_DIR="$(dirname "$DB_FILE")"
+mkdir -p "$DB_DIR"
+[ -f "$DB_FILE" ] || touch "$DB_FILE"
+
+# ---------------------------------------------------------------------------
+# 3. Encryption key. The tracked .env ships in the image and holds no
+#    secrets. APP_KEY may be provided via Vercel's dashboard env vars;
+#    otherwise generate one. Generated keys are NOT persisted across
+#    cold starts, which means sessions and signed URLs invalidate on
+#    every cold restart — acceptable for a stateless marketing storefront.
+# ---------------------------------------------------------------------------
+if [ ! -f .env ] && [ -f .env.example ]; then
+    cp .env.example .env
+fi
+if [ -f .env ] \
+    && [ -z "${APP_KEY:-}" ] \
+    && ! grep -q '^APP_KEY=base64:' .env; then
+    php artisan key:generate --force
+fi
+
+# 3b. Materialize DB_DATABASE into .env. Web SAPIs (Apache mod_php) do
+#     not reliably expose container environment variables to PHP (OBS-005),
+#     but every runtime reads .env. The CLI (migrate below) sees the real
+#     environment variable directly; both resolve to the same file.
+if [ -n "${DB_DATABASE:-}" ] && [ -f .env ]; then
+    if grep -q '^DB_DATABASE=' .env; then
+        sed -i "s|^DB_DATABASE=.*|DB_DATABASE=$DB_DATABASE|" .env
+    else
+        printf '\nDB_DATABASE=%s\n' "$DB_DATABASE" >> .env
+    fi
+fi
+
+# ---------------------------------------------------------------------------
+# 4. Migrations (idempotent — safe on every container start).
+# ---------------------------------------------------------------------------
+php artisan migrate --force
+
+# ---------------------------------------------------------------------------
+# 5. Apache port. Vercel injects PORT (typically 8080); Apache's Listen
+#    directive cannot read env vars at parse time, so the entrypoint
+#    substitutes the {{PORT}} placeholder in vhost.vercel.conf with the
+#    actual value. Falls back to 8080 if PORT is unset (matches Vercel's
+#    default convention; also works for local `docker run -e PORT=...`).
+# ---------------------------------------------------------------------------
+PORT="${PORT:-8080}"
+
+VHOST_FILE="/etc/apache2/sites-available/storefront.conf"
+if [ -f "$VHOST_FILE" ]; then
+    sed -i "s|{{PORT}}|$PORT|g" "$VHOST_FILE"
+fi
+
+# Also rewrite the default ports.conf so Apache's global Listen directive
+# matches the vhost. Without this, Apache fails to start with
+# "(22)Invalid argument: make_sock: could not bind to address" when
+# ports.conf still says Listen 80 but the vhost binds *:$PORT.
+PORTS_FILE="/etc/apache2/ports.conf"
+if [ -f "$PORTS_FILE" ]; then
+    # Replace the FIRST Listen directive (Apache's default ports.conf has
+    # `Listen 80`); preserve any subsequent Listen lines for SSL, etc.
+    sed -i "0,/^Listen .*/ s|^Listen .*|Listen $PORT|" "$PORTS_FILE"
+fi
+
+# ---------------------------------------------------------------------------
+# 6. Writable ownership for the web user. Only meaningful when the
+#    container starts as root (the php:apache default); Vercel may invoke
+#    the container as a non-root user, in which case chown fails silently
+#    (no permission) and the runtime must already be writable by that user.
+#    The /tmp relocation in step 1 covers the common case.
+# ---------------------------------------------------------------------------
+if [ "$(id -u)" = "0" ]; then
+    chown -R www-data:www-data \
+        storage bootstrap/cache "$EPHEMERAL_ROOT" database 2>/dev/null || true
+fi
+
+# ---------------------------------------------------------------------------
+# 7. Hand off to the container command (default: apache2-foreground).
+# ---------------------------------------------------------------------------
+exec "$@"

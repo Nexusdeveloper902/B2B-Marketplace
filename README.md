@@ -67,6 +67,52 @@ docker compose logs -f storefront
 and adds a healthcheck against Laravel's `/up` route. Publish on a different
 port with `APP_PORT=3000 docker compose up -d`.
 
+## Deploy on Vercel (Docker Container)
+
+Vercel has no first-class Laravel runtime, but it can build and run any
+container that listens on the port Vercel injects via `$PORT`. The repo
+ships a Vercel-ready variant alongside the Render Dockerfile:
+
+| File | Purpose |
+|---|---|
+| `Dockerfile.vercel` | Multi-stage Apache + mod_php image, identical to the Render image except for Vercel-specific port handling |
+| `docker/apache/vhost.vercel.conf` | Vhost template with a `{{PORT}}` placeholder the entrypoint substitutes at startup |
+| `docker/entrypoint.vercel.sh` | Entrypoint variant that relocates writable state to `/tmp`, patches Apache's port from `$PORT`, and skips `chown` when not root |
+| `vercel.json` | Wires Vercel's `@vercel/docker` builder at `Dockerfile.vercel` |
+
+### Quick deploy
+
+1. Push this commit to `main` (already done if you're reading the repo).
+2. Import the repo into Vercel — Vercel auto-detects `vercel.json` and builds `Dockerfile.vercel`.
+3. No env vars required for a working demo — `APP_KEY` is auto-generated on cold start if absent.
+
+### ⚠️ Critical caveat: data is ephemeral
+
+Vercel's container filesystem is **ephemeral**. The entrypoint relocates
+the SQLite database file and Laravel's `storage/` tree to `/tmp/`, so
+the app runs correctly during a single container lifetime — but on every
+cold restart (redeploy, scale-to-zero, container recycle), **all contact
+submissions are lost** and the database is recreated from migrations.
+
+This is acceptable for a marketing storefront demo. For production use,
+either:
+
+- Stay on Render (persistent SQLite volume via `docker-compose.yml`), or
+- Move contact persistence to Vercel Postgres / Turso / Neon and update
+  `config/database.php` + the `ContactRequest` model accordingly
+  (out of scope per ADR-001 / TASK-001 constraints).
+
+See `.agent/OBSERVATIONS/OBS-007-vercel-ephemeral-filesystem.md` and
+`.agent/DECISIONS/ADR-006-vercel-deployment.md` for the full rationale.
+
+### Local test of the Vercel image
+
+```bash
+docker build -f Dockerfile.vercel -t storefront-vercel .
+docker run --rm -p 8080:8080 -e PORT=8080 storefront-vercel
+# storefront at http://localhost:8080
+```
+
 ## Tests
 
 ```bash

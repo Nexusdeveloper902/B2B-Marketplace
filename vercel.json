@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "builds": [
+    {
+      "src": "Dockerfile.vercel",
+      "use": "@vercel/docker",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    }
+  ]
+}
