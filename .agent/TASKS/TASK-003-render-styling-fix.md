@@ -66,7 +66,7 @@ consequences future agents must preserve.
 
 ## Commits
 
-### Commit — {{COMMIT_HASH}}
+### Commit — 38a2412
 Date: 2026-09-02
 Branch: main
 

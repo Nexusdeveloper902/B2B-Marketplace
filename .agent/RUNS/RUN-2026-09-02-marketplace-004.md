@@ -52,7 +52,7 @@ is unaffected because neither condition is true on http://localhost:8000.
 - .agent/STATE/SNAPSHOT-RUN-2026-09-02-marketplace-004.md (new)
 
 ## Commits Created
-- (hash recorded in TASK-003 commit entry after `git commit`)
+- 38a2412 — fix(assets): force https:// scheme behind TLS-terminating proxies (Render)
 
 ## Branches
 - main (direct commit — single-line-code fix + .agent/ docs, no

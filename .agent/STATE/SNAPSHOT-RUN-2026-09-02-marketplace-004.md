@@ -44,7 +44,7 @@ Render redeploy to confirm.
   by the forceScheme fix (no proxy header → no force applied).
 
 ## Current Main Commit
-(recorded after `git commit` + `git push`)
+38a2412 — fix(assets): force https:// scheme behind TLS-terminating proxies (Render)
 
 ## Current Main Status
 BUILDABLE — single one-line-code change to AppServiceProvider, plus
