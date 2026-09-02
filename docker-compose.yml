@@ -1,0 +1,41 @@
+# Presence Platform — Marketplace Storefront
+#
+# One-command deployment:
+#   docker compose up -d --build
+# The storefront is then served on http://localhost:8080 (override the
+# published port with APP_PORT=3000 docker compose up -d). Contact
+# submissions are persisted in the named volume `storefront-data` (SQLite
+# file), so they survive rebuilds and container re-creates.
+
+name: presence-platform-storefront
+
+services:
+  storefront:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: presence-platform-storefront
+    ports:
+      - "${APP_PORT:-8080}:80"
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DB_CONNECTION: sqlite
+      # Laravel lets real environment variables override .env values, so
+      # the SQLite file lives on the persistent volume instead of the
+      # container filesystem.
+      DB_DATABASE: /var/www/storefront-data/database.sqlite
+    volumes:
+      - storefront-data:/var/www/storefront-data
+    restart: unless-stopped
+    # php:apache images ship no curl/wget binary, so the healthcheck uses
+    # the PHP CLI against Laravel's /up health route.
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1/up') === false ? 1 : 0);"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  storefront-data:
