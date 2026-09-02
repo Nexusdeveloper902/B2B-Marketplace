@@ -55,7 +55,7 @@ Two compounding issues (OBS-010):
 
 ## Commits
 
-### Commit — {{COMMIT_HASH}}
+### Commit — b3e5ad8
 Date: 2026-09-02
 Branch: main
 

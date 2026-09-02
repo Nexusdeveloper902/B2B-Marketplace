@@ -52,7 +52,7 @@ trace mode, non-fatal storage symlink, and non-fatal migrate.
 - .agent/STATE/SNAPSHOT-RUN-2026-09-02-marketplace-008.md (new)
 
 ## Commits Created
-- (hash recorded after `git commit`)
+- b3e5ad8 — fix(vercel): config-level fallbacks for DB path, session, cache + /__debug route
 
 ## Branches
 - main (direct commit)

@@ -32,7 +32,7 @@ redeploy to confirm.
   now match what .env was already setting).
 
 ## Current Main Commit
-(recorded after commit + push)
+b3e5ad8 — fix(vercel): config-level fallbacks for DB path, session, cache + /__debug route
 
 ## Current Main Status
 BUILDABLE — config-level + entrypoint changes, no application code
