@@ -65,7 +65,7 @@ secondary layers — they'll now actually take effect.
 - .agent/STATE/SNAPSHOT-RUN-2026-09-02-marketplace-009.md (new)
 
 ## Commits Created
-- (hash recorded after `git commit`)
+- 00dd0bd — fix(vercel): use Dockerfile.vercel + services runtime:container (the actual fix)
 
 ## Branches
 - main (direct commit)

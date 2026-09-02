@@ -47,7 +47,7 @@ why all previous fixes had zero effect. See OBS-011 for full evidence.
 
 ## Commits
 
-### Commit — {{COMMIT_HASH}}
+### Commit — 00dd0bd
 Date: 2026-09-02
 Branch: main
 

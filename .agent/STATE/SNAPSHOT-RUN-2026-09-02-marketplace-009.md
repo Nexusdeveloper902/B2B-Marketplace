@@ -35,7 +35,7 @@ was never running the Docker image (OBS-011).
   docker-compose.yml references it.
 
 ## Current Main Commit
-(recorded after commit + push)
+00dd0bd — fix(vercel): use Dockerfile.vercel + services runtime:container (the actual fix)
 
 ## Current Main Status
 BUILDABLE — file renames + new vercel.json + config updates.
