@@ -67,25 +67,30 @@ docker compose logs -f storefront
 and adds a healthcheck against Laravel's `/up` route. Publish on a different
 port with `APP_PORT=3000 docker compose up -d`.
 
-## Deploy on Vercel (Container Service)
+## Deploy on Vercel (Container Service — FrankenPHP)
 
 Vercel has no first-class Laravel runtime, but it can run any Docker image as
 a **container service** via `Dockerfile.vercel` + a `vercel.json` that
-declares `runtime: "container"`. This is the **only** correct way to deploy
-a Docker image on Vercel — a bare `Dockerfile` is treated as a generic
-serverless function (different semantics, different filesystem model, no
-guaranteed entrypoint execution). See
-`.agent/OBSERVATIONS/OBS-011-vercel-requires-dockerfile-vercel-and-services-config.md`
-for the full analysis of why previous approaches failed.
+declares `runtime: "container"`. The Dockerfile uses **FrankenPHP**
+(Vercel's officially recommended PHP runtime per
+`vercel.com/kb/guide/deploy-php-on-vercel-with-docker`) — a single binary
+combining the Caddy web server and PHP runtime that reads environment
+variables natively and binds to `$PORT` via Caddyfile config.
+
+Previous attempts used Apache+mod_php, which failed because the `php:apache`
+image does NOT pass OS env vars to PHP by default (requiring `SetEnv`
+directives that were never added). FrankenPHP eliminates this issue entirely.
+See `.agent/OBSERVATIONS/OBS-012-apache-mod-php-env-var-passing.md` and
+`.agent/DECISIONS/ADR-011-switch-to-frankenphp.md` for the full analysis.
 
 Vercel-specific files:
 
 | File | Purpose |
 |---|---|
-| `Dockerfile.vercel` | Multi-stage Apache + mod_php image (Vercel detects this filename) |
+| `Dockerfile.vercel` | Multi-stage FrankenPHP image (Vercel detects this filename) |
 | `vercel.json` | Declares the container service with `runtime: "container"` + catch-all rewrite |
-| `docker/apache/vhost.vercel.conf` | Vhost template with a `{{PORT}}` placeholder the entrypoint substitutes at startup |
-| `docker/entrypoint.vercel.sh` | Entrypoint variant that relocates writable state to `/tmp`, patches Apache's port from `$PORT`, and skips `chown` when not root |
+| `docker/caddy/Caddyfile.vercel` | Caddy config: listens on `:{$PORT:80}`, serves `/app/public`, routes through `index.php` |
+| `docker/entrypoint.frankenphp.sh` | Entrypoint: creates writable dirs in `/tmp`, runs migrations, execs FrankenPHP |
 
 ### Quick deploy
 

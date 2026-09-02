@@ -1,17 +1,29 @@
 # syntax=docker/dockerfile:1
 
 # Presence Platform — Marketplace Storefront
-# Vercel Container Deployment target.
+# Vercel Container Deployment target (FrankenPHP).
 #
-# This file is named `Dockerfile.vercel` because Vercel's container runtime
-# specifically detects `Dockerfile.vercel` (or `Containerfile.vercel`) as the
-# entrypoint for a container service — NOT a bare `Dockerfile`. A bare
-# `Dockerfile` is treated as a generic serverless function with different
-# semantics (no guaranteed entrypoint execution, different filesystem model,
-# 250MB limit). See .agent/OBSERVATIONS/OBS-011-vercel-requires-dockerfile-vercel-and-services-config.md
-# and .agent/DECISIONS/ADR-010-vercel-services-runtime-container.md.
+# This Dockerfile uses FrankenPHP (Vercel's officially recommended PHP runtime)
+# instead of Apache+mod_php. FrankenPHP is a single binary that combines a
+# Caddy web server and the PHP runtime, reads OS environment variables natively
+# (no SetEnv/PassEnv needed), and requires no vhost port templating.
 #
-# The companion `vercel.json` declares this as a container service:
+# Previous attempts (RUN-005 through RUN-009) used php:apache + mod_php.
+# That approach failed because:
+#   1. The php:apache image does NOT pass OS env vars to PHP by default
+#      (requires SetEnv directives that were never added)
+#   2. Apache's Listen directive can't read $PORT at parse time
+#   3. The entrypoint's .env materialization failed on Vercel's read-only FS
+#   4. The config-level is_writable() fallback returned true for root
+#      even on read-only filesystem layers
+#
+# FrankenPHP eliminates all of these issues. See:
+#   - .agent/DECISIONS/ADR-011-switch-to-frankenphp.md
+#   - .agent/OBSERVATIONS/OBS-012-apache-mod-php-env-var-passing.md
+#   - Vercel's official PHP guide: vercel.com/kb/guide/deploy-php-on-vercel-with-docker
+#   - FrankenPHP Laravel docs: frankenphp.dev/docs/laravel
+#
+# vercel.json declares this as a container service:
 #   {
 #     "services": {
 #       "api": { "root": ".", "entrypoint": "Dockerfile.vercel", "runtime": "container" }
@@ -19,44 +31,14 @@
 #     "rewrites": [{ "source": "/(.*)", "destination": { "service": "api" } }]
 #   }
 #
-# Without that `services` + `runtime: "container"` declaration, Vercel falls
-# back to framework auto-detection (detecting Laravel via composer.json and
-# using its own PHP runtime) OR treats the Dockerfile as a serverless
-# function. Either way, the Dockerfile/entrypoint changes have NO EFFECT —
-# which is why all previous fixes (RUN-006 through RUN-008) failed to resolve
-# the `DatabaseManager.php line 226` crash. See OBS-011 for the full analysis.
-#
-# Why this Dockerfile is Vercel-shaped (not Render-shaped):
-#   - Vercel injects a $PORT env var the container must bind to (Apache's
-#     Listen directive can't read env vars at parse time — the entrypoint
-#     rewrites ports.conf + the vhost at startup).
-#   - Vercel's container filesystem is EPHEMERAL: SQLite data and Laravel
-#     storage/ state do not survive cold starts. The entrypoint relocates
-#     them to /tmp/ (the only guaranteed-writable location) so the app
-#     runs at all, but contact submissions will be lost on cold restart.
-#     See .agent/OBSERVATIONS/OBS-007-vercel-ephemeral-filesystem.md.
-#   - Vercel may run the container as non-root; the entrypoint skips the
-#     chown step when not root.
-#
 # Build locally for testing:
 #   docker build -f Dockerfile.vercel -t storefront-vercel .
 #   docker run --rm -p 8080:8080 -e PORT=8080 storefront-vercel
-#
-# The Render deployment target uses `Dockerfile` (the repo's default
-# Dockerfile name, which is the Render variant). docker-compose.yml
-# references it for the persistent-volume local-deploy flow.
-#
-# Approach recorded in .agent/DECISIONS/ADR-010-vercel-services-runtime-container.md
-# (supersedes ADR-007, which incorrectly assumed Vercel auto-detects a bare
-# `Dockerfile`). Mirrors ADR-004's Apache + mod_php + SQLite shape; the
-# differences are isolated to the vhost (port templated at runtime) and
-# the entrypoint (ephemeral-FS relocation + $PORT patching).
 
 ARG PHP_VERSION=8.4
 
 # ---------------------------------------------------------------------------
-# Stage 1 — dependencies (identical to the Render Dockerfile's stage 1;
-# cached independently because Vercel builds from this Dockerfile context).
+# Stage 1 — PHP dependencies.
 # ---------------------------------------------------------------------------
 FROM composer:2 AS vendor
 
@@ -75,43 +57,47 @@ COPY . .
 RUN composer dump-autoload --optimize --no-interaction
 
 # ---------------------------------------------------------------------------
-# Stage 2 — runtime.
-# php:8.4-apache ships every extension this app requires (pdo_sqlite,
-# sqlite3, mbstring, openssl, dom, tokenizer, ctype, curl, fileinfo).
-# The lockfile's Symfony components set a PHP >= 8.4.1 floor — the 8.4 tag
-# always satisfies it. Nothing is compiled beyond OPcache.
+# Stage 2 — Runtime (FrankenPHP).
+#
+# dunglas/frankenphp:1-php8.4 bundles:
+#   - FrankenPHP (Go-based PHP app server)
+#   - Caddy (web server)
+#   - PHP 8.4 with all standard extensions
+#   - install-php-extension-installer script
+#
+# FrankenPHP reads env vars natively (unlike Apache+mod_php), binds to $PORT
+# via Caddyfile config, and serves PHP directly without mod_php or FastCGI.
 # ---------------------------------------------------------------------------
-FROM php:${PHP_VERSION}-apache
+FROM dunglas/frankenphp:1-php${PHP_VERSION}
 
-# Production PHP settings, OPcache for image-immutable code, mod_rewrite,
-# ServerName hint so Apache stops warning on startup.
-RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
-    && docker-php-ext-install opcache \
-    && a2enmod rewrite \
-    && echo 'ServerName storefront' \
-        > /etc/apache2/conf-available/servername.conf \
-    && a2enconf servername
+# Install the PHP extensions this app needs. FrankenPHP's base image ships
+# most extensions; pdo_sqlite and sqlite3 are needed for the contact form.
+RUN install-php-extensions pdo_sqlite sqlite3 mbstring opcache
 
-COPY docker/php/opcache.ini "$PHP_INI_DIR/conf.d/zz-opcache.ini"
+# Copy the application + vendor from stage 1.
+WORKDIR /app
+COPY --from=vendor --chown=www-data:www-data /app /app
 
-# Vercel-specific vhost: port is templated at runtime by the entrypoint
-# because Apache's Listen directive cannot read $PORT at parse time.
-COPY docker/apache/vhost.vercel.conf /etc/apache2/sites-available/storefront.conf
-RUN a2dissite 000-default \
-    && a2ensite storefront
+# Copy the Caddyfile that configures FrankenPHP to:
+#   - Listen on :{$PORT:80} (Vercel injects $PORT; default 80 for local dev)
+#   - Serve /app/public as the document root
+#   - Route all requests through public/index.php (Laravel's front controller)
+COPY --chown=www-data:www-data docker/caddy/Caddyfile.vercel /etc/frankenphp/Caddyfile
 
-# Application + vendor + the tracked, secret-free .env from stage 1.
-COPY --from=vendor --chown=www-data:www-data /app /var/www/html
+# Copy the simplified entrypoint (no Apache port patching needed).
+COPY --chmod=0755 docker/entrypoint.frankenphp.sh /usr/local/bin/storefront-entrypoint
 
-COPY --chmod=0755 docker/entrypoint.vercel.sh /usr/local/bin/storefront-entrypoint
+# Ensure writable directories exist (FrankenPHP runs as www-data by default).
+RUN mkdir -p /app/storage/framework/views \
+             /app/storage/framework/sessions \
+             /app/storage/framework/cache/data \
+             /app/storage/logs \
+             /app/bootstrap/cache \
+    && chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
-# EXPOSE is documentation only — Vercel routes traffic to whatever the
-# container listens on per $PORT. Default to 8080 to match Vercel's
-# convention; the entrypoint patches Apache to the actual $PORT at runtime.
-EXPOSE 8080
+EXPOSE 80
 
-# Prepares ephemeral writable dirs, patches Apache's listen port from
-# $PORT, runs migrations, then execs the container command
-# (default: apache2-foreground).
+# Prepares writable directories, creates the SQLite file, generates APP_KEY
+# if missing, runs migrations, then execs frankenphp.
 ENTRYPOINT ["storefront-entrypoint"]
-CMD ["apache2-foreground"]
+CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile"]

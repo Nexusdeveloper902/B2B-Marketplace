@@ -1,0 +1,27 @@
+# Presence Platform storefront — FrankenPHP/Caddy configuration for Vercel.
+#
+# Caddyfile syntax: https://caddyserver.com/docs/caddyfile
+#
+# This config does three things:
+#   1. Binds to :{$PORT:80} — Vercel injects $PORT (typically 8080); the
+#      {$PORT:80} syntax reads the env var and falls back to 80 for local dev.
+#      The leading colon means "listen on all interfaces" (Vercel routes
+#      traffic to the container's external interface).
+#   2. Sets the document root to /app/public (Laravel's public dir).
+#   3. Routes all requests through public/index.php via php_server (Laravel's
+#      front controller pattern). try_files ensures static assets (CSS, fonts,
+#      favicon) are served directly without hitting PHP.
+
+:{$PORT:80} {
+	root * /app/public
+	encode zstd gzip
+
+	php_server {
+		try_files {path} /index.php
+	}
+
+	log {
+		output stderr
+		format json
+	}
+}

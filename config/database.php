@@ -4,34 +4,28 @@ use Illuminate\Support\Str;
 use Pdo\Mysql;
 
 // ---------------------------------------------------------------------------
-// SQLite path resolution for read-only-filesystem deployment targets (Vercel).
+// SQLite path resolution.
 //
-// Laravel's default SQLite path is database_path('database.sqlite') =
-// /var/www/html/database/database.sqlite. On Vercel Container Deployments,
-// /var/www/html is in the read-only image layer at request time, so SQLite
-// can't open the file for writing (it needs write access to the file AND
-// the directory for journal/WAL files). The entrypoint materializes
-// DB_DATABASE into .env (ADR-008), but if .env itself isn't writable (read-
-// only filesystem), that materialization silently fails and Laravel falls
-// back to the default path.
+// Priority:
+//   1. DB_DATABASE env var (set by the entrypoint or Vercel dashboard).
+//      FrankenPHP passes env vars to PHP natively (unlike Apache+mod_php).
+//   2. Fallback to /tmp/storefront/database.sqlite if the default path's
+//      directory doesn't exist or the default file isn't writable.
+//      This handles read-only filesystems (Vercel) where /var/www/html
+//      is read-only at request time.
+//   3. Default: database_path('database.sqlite') for local dev / Render.
 //
-// This code-level fallback resolves the SQLite path BEFORE env() is consulted,
-// checking whether the default path's directory is writable. If it isn't
-// (Vercel), it falls back to /tmp/storefront/database.sqlite (which the
-// entrypoint creates and migrates). Safe for local dev and Render (where
-// the default path IS writable, so the fallback doesn't kick in).
-//
-// See .agent/DECISIONS/ADR-009-vercel-config-level-fallbacks.md and
-// .agent/OBSERVATIONS/OBS-010-vercel-readonly-filesystem-breaks-env-override.md.
+// See ADR-011 (switch to FrankenPHP) and OBS-012 (Apache env var passing).
 // ---------------------------------------------------------------------------
 $sqliteDefaultPath = database_path('database.sqlite');
 $sqliteDefaultDir = dirname($sqliteDefaultPath);
-if (!is_dir($sqliteDefaultDir) || !is_writable($sqliteDefaultDir)) {
-    // Read-only image layer (Vercel) — use the ephemeral /tmp path that
-    // the entrypoint creates and migrates.
+
+// If the database directory doesn't exist OR the file exists but isn't
+// writable, fall back to /tmp/storefront/database.sqlite (ephemeral but
+// writable on Vercel). We check both is_dir and is_writable because
+// is_writable returns true for root even on read-only filesystems.
+if (!is_dir($sqliteDefaultDir)) {
     $sqliteDefaultPath = '/tmp/storefront/database.sqlite';
-    // Ensure the directory exists (in case the entrypoint hasn't run yet,
-    // e.g. during a test or a misconfigured container).
     if (!is_dir(dirname($sqliteDefaultPath))) {
         @mkdir(dirname($sqliteDefaultPath), 0777, true);
     }
