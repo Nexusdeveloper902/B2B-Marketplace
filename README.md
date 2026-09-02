@@ -36,6 +36,34 @@ Then open `http://127.0.0.1:8000`. The SQLite database file is created
 automatically by the migration. `.env` ships with the repository because this
 app contains no secrets (local SQLite, no mail/API credentials).
 
+## Deploy with Docker
+
+The storefront ships as a self-contained production image — Apache + mod_php,
+SQLite, self-hosted fonts; no Node, no database server, no other services.
+Build and run it directly:
+
+```bash
+docker build -t presence-platform-storefront .
+docker run --rm -p 8080:80 presence-platform-storefront
+# storefront at http://localhost:8080
+```
+
+The entrypoint prepares writable directories, creates and migrates the SQLite
+database on first start (idempotently on every start), then hands off to
+Apache. The tracked `.env` is part of the image and contains no secrets; any
+variable passed with `-e KEY=value` overrides it at runtime.
+
+For a persistent deployment — contact submissions survive rebuilds:
+
+```bash
+docker compose up -d --build       # builds, migrates, serves on :8080
+docker compose logs -f storefront
+```
+
+`docker-compose.yml` keeps the SQLite file on the `storefront-data` volume
+and adds a healthcheck against Laravel's `/up` route. Publish on a different
+port with `APP_PORT=3000 docker compose up -d`.
+
 ## Tests
 
 ```bash
