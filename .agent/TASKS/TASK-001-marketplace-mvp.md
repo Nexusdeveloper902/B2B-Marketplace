@@ -133,3 +133,98 @@ Changes:
 Verification:
 - Fresh sqlite file + migrate + serve with production env: all routes 200: PASS
 - php artisan test after flip: 14 passed: PASS
+
+## Commit — a3c54bf
+
+Date: 2026-09-02
+Branch: feature/TASK-001-marketplace-mvp
+Run: RUN-2026-09-02-marketplace-002
+
+Summary:
+Fixed the test bootstrap for fresh clones: removed the empty Unit testsuite
+reference from phpunit.xml (tests/Unit held only the deleted scaffold
+placeholder, and git does not track the empty directory, so a fresh clone
+failed with "Test directory tests/Unit not found").
+
+Verification:
+- php artisan test on branch: 14 passed (101 assertions): PASS
+- Full fresh-clone verification (clone -> composer install -> migrate ->
+  serve + route smoke + tests) re-run after merge: PASS
+
+Notes:
+- Found during independent post-merge verification of main; the app itself
+  (install/migrate/serve) was never broken — only the test runner config.
+
+## Merge — 4312813
+
+Date: 2026-09-02
+Source Branch: feature/TASK-001-marketplace-mvp
+Target Branch: main
+Run: RUN-2026-09-02-marketplace-002
+
+Result:
+MERGED (--no-ff, includes 33b23aa, c9c3166, 84ac297, 2e14471, 03a7082)
+
+Verification on main (fresh clone to a separate directory):
+- git clone: PASS
+- composer install: PASS
+- php artisan migrate (sqlite auto-created): PASS
+- php artisan serve + all six routes 200: PASS
+- php artisan test: FAILED (tests/Unit not tracked) → fixed by a3c54bf
+
+## Merge — 180eb79
+
+Date: 2026-09-02
+Source Branch: feature/TASK-001-marketplace-mvp
+Target Branch: main
+Run: RUN-2026-09-02-marketplace-002
+
+Result:
+MERGED (--no-ff, includes a3c54bf: phpunit fix)
+
+Verification on main (fresh clone to a separate directory, full sequence):
+- git clone: PASS
+- composer install: PASS
+- php artisan migrate (sqlite auto-created): PASS
+- php artisan serve + all six routes 200: PASS
+- php artisan test: 14 passed (101 assertions): PASS
+
+## Push — 2026-09-02
+
+Run: RUN-2026-09-02-marketplace-002
+
+- origin/main @ 180eb79: PUSHED (verified via origin/main ref)
+- origin/feature/TASK-001-marketplace-mvp @ a3c54bf: PUSHED (new branch)
+
+A repository token with contents:write permission was available in the
+environment and used for clone/push; it is not stored in any project file.
+
+## Task Status Update — 2026-09-02
+
+TASK-001-marketplace-mvp: COMPLETED (all acceptance criteria verified; see
+RUNS/RUN-2026-09-02-marketplace-002.md for the final evaluation).
+
+## Acceptance Criteria — final evaluation (RUN-2026-09-02-marketplace-002)
+
+[x] All 5 pages exist, reachable via nav, render without errors
+    — 6 routes 200; nav present on every page (tested)
+[x] Responsive on mobile and desktop
+    — no horizontal overflow at 360/390/1440px (DOM-measured); VLM-reviewed
+[x] Pricing page shows 3 tiers with distinct feature lists
+    — tested (Starter / Campus / Enterprise with tier-specific features)
+[x] Enterprise page explains custom/flexible tracking
+    — tested (labeled-event pattern + four use-case records)
+[x] Contact form validates, persists to SQLite contact_requests, shows success
+    — tested (EN + ES messages); manual persistence check via tinker
+[x] No login/cart/checkout/vendor-account UI present
+    — tested (404 on /login /register /cart /checkout /vendor)
+[x] composer install + migrate + serve succeed from a fresh clone
+    — verified twice on isolated fresh clones at main @ 180eb79
+[x] No dependency on core platform API/backend/hardware
+    — grep audit clean; ARCH-001 documents the decoupling
+[x] Visual design reflects a deliberate, product-specific direction (ADR-002)
+    — avoids cream+terracotta / dark+neon, card kits, ALL-CAPS eyebrows,
+    middots, arrow CTAs, scattered animations; mono used only for event data;
+    single orchestrated hero tap moment
+
+All criteria satisfied. Task COMPLETED.

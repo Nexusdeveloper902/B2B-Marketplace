@@ -88,15 +88,17 @@ RESULT: SUCCESS
 ACTION: Merge feature branch into main
 SOURCE: feature/TASK-001-marketplace-mvp
 TARGET: main
-RESULT: (recorded after merge in run report and task file)
+RESULT: SUCCESS — merge 4312813 (main body). Fresh-clone verification found
+phpunit referencing untracked tests/Unit; fixed by a3c54bf and re-merged as 180eb79.
 
 ## 2026-09-02 04:10
 ACTION: Independent main verification (fresh clone)
-COMMAND: git clone (tokenless file path) → composer install → php artisan migrate → php artisan serve → route smoke + php artisan test
-RESULT: (recorded after merge in run report and task file)
+COMMAND: git clone → composer install → php artisan migrate → php artisan serve → route smoke → php artisan test
+RESULT: PASS on all steps at main @ 180eb79 (migrate auto-creates sqlite; six routes 200; 14 tests / 101 assertions).
 
 ## 2026-09-02 04:15
 ACTION: Push
 COMMAND: git push -u origin main && git push -u origin feature/TASK-001-marketplace-mvp
-RESULT: (recorded after push in run report; credentials used from environment,
-never written to files or docs)
+RESULT: SUCCESS — origin/main @ 180eb79 and origin/feature/TASK-001-marketplace-mvp
+@ a3c54bf both pushed and verified. Credentials used from environment only,
+never written to any project file or document.
