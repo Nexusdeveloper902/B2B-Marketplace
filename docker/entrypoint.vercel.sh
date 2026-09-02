@@ -79,15 +79,22 @@ if [ -f .env ] \
     php artisan key:generate --force
 fi
 
-# 3b. Materialize DB_DATABASE into .env. Web SAPIs (Apache mod_php) do
-#     not reliably expose container environment variables to PHP (OBS-005),
-#     but every runtime reads .env. The CLI (migrate below) sees the real
-#     environment variable directly; both resolve to the same file.
-if [ -n "${DB_DATABASE:-}" ] && [ -f .env ]; then
+# 3b. ALWAYS materialize DB_DATABASE into .env, pointing at the file the
+#     entrypoint just created in step 2. Without this, Laravel falls back
+#     to database_path('database.sqlite') = /var/www/html/database/database.sqlite
+#     at request time, which on Vercel is in the read-only image layer and
+#     crashes the DB connection with "unable to open database file" (surfaces
+#     as DatabaseManager.php line 226). OBS-009.
+#
+#     This block differs from the Render entrypoint (entrypoint.sh), which
+#     only materializes DB_DATABASE when the env var is set. On Vercel we
+#     must ALWAYS materialize it because the default Laravel path is in
+#     the read-only image filesystem, not in /tmp.
+if [ -f .env ]; then
     if grep -q '^DB_DATABASE=' .env; then
-        sed -i "s|^DB_DATABASE=.*|DB_DATABASE=$DB_DATABASE|" .env
+        sed -i "s|^DB_DATABASE=.*|DB_DATABASE=$DB_FILE|" .env
     else
-        printf '\nDB_DATABASE=%s\n' "$DB_DATABASE" >> .env
+        printf '\nDB_DATABASE=%s\n' "$DB_FILE" >> .env
     fi
 fi
 
