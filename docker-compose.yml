@@ -13,7 +13,7 @@ services:
   storefront:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.render
     image: presence-platform-storefront
     ports:
       - "${APP_PORT:-8080}:80"

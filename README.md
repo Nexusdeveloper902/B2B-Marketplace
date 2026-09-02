@@ -36,17 +36,21 @@ Then open `http://127.0.0.1:8000`. The SQLite database file is created
 automatically by the migration. `.env` ships with the repository because this
 app contains no secrets (local SQLite, no mail/API credentials).
 
-## Deploy with Docker
+## Deploy with Docker (Render / persistent volume)
 
 The storefront ships as a self-contained production image — Apache + mod_php,
 SQLite, self-hosted fonts; no Node, no database server, no other services.
-Build and run it directly:
+The Render / docker-compose Dockerfile lives at `Dockerfile.render`:
 
 ```bash
-docker build -t presence-platform-storefront .
+docker build -f Dockerfile.render -t presence-platform-storefront .
 docker run --rm -p 8080:80 presence-platform-storefront
 # storefront at http://localhost:8080
 ```
+
+**Render dashboard note:** Render's default Dockerfile name is `Dockerfile`,
+but on this repo that file is the Vercel variant. Set Render's "Dockerfile
+path" to `Dockerfile.render` (or your build will use the wrong target).
 
 The entrypoint prepares writable directories, creates and migrates the SQLite
 database on first start (idempotently on every start), then hands off to
@@ -59,7 +63,7 @@ the app configuration at startup; any other variable you pass with
 For a persistent deployment — contact submissions survive rebuilds:
 
 ```bash
-docker compose up -d --build       # builds, migrates, serves on :8080
+docker compose up -d --build       # builds from Dockerfile.render, migrates, serves on :8080
 docker compose logs -f storefront
 ```
 
@@ -67,24 +71,29 @@ docker compose logs -f storefront
 and adds a healthcheck against Laravel's `/up` route. Publish on a different
 port with `APP_PORT=3000 docker compose up -d`.
 
-## Deploy on Vercel (Docker Container)
+## Deploy on Vercel (Docker Container — auto-detected)
 
-Vercel has no first-class Laravel runtime, but it can build and run any
-container that listens on the port Vercel injects via `$PORT`. The repo
-ships a Vercel-ready variant alongside the Render Dockerfile:
+Vercel has no first-class Laravel runtime, but it auto-detects a `Dockerfile`
+in the repo root and builds it as a long-running container. This repo's
+default `Dockerfile` is the Vercel variant — **no `vercel.json` or
+`@vercel/docker` builder needed** (that builder was deprecated and removed
+from Vercel's npm registry on 2025-08-18; see
+`.agent/OBSERVATIONS/OBS-008-vercel-docker-builder-deprecated.md`).
+
+Vercel-specific files:
 
 | File | Purpose |
 |---|---|
-| `Dockerfile.vercel` | Multi-stage Apache + mod_php image, identical to the Render image except for Vercel-specific port handling |
+| `Dockerfile` | Multi-stage Apache + mod_php image (auto-detected by Vercel) |
 | `docker/apache/vhost.vercel.conf` | Vhost template with a `{{PORT}}` placeholder the entrypoint substitutes at startup |
 | `docker/entrypoint.vercel.sh` | Entrypoint variant that relocates writable state to `/tmp`, patches Apache's port from `$PORT`, and skips `chown` when not root |
-| `vercel.json` | Wires Vercel's `@vercel/docker` builder at `Dockerfile.vercel` |
 
 ### Quick deploy
 
 1. Push this commit to `main` (already done if you're reading the repo).
-2. Import the repo into Vercel — Vercel auto-detects `vercel.json` and builds `Dockerfile.vercel`.
+2. Import the repo into Vercel — Vercel auto-detects `Dockerfile` and builds it.
 3. No env vars required for a working demo — `APP_KEY` is auto-generated on cold start if absent.
+4. No `vercel.json` — Vercel Container Deployments don't need one when using the auto-detected `Dockerfile`.
 
 ### ⚠️ Critical caveat: data is ephemeral
 
@@ -103,12 +112,12 @@ either:
   (out of scope per ADR-001 / TASK-001 constraints).
 
 See `.agent/OBSERVATIONS/OBS-007-vercel-ephemeral-filesystem.md` and
-`.agent/DECISIONS/ADR-006-vercel-deployment.md` for the full rationale.
+`.agent/DECISIONS/ADR-007-vercel-default-dockerfile.md` for the full rationale.
 
 ### Local test of the Vercel image
 
 ```bash
-docker build -f Dockerfile.vercel -t storefront-vercel .
+docker build -t storefront-vercel .   # uses Dockerfile (the Vercel variant)
 docker run --rm -p 8080:8080 -e PORT=8080 storefront-vercel
 # storefront at http://localhost:8080
 ```

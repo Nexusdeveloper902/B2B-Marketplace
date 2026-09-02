@@ -12,13 +12,13 @@ tests/
 
 # Docker build files themselves are not needed inside the image
 # (docker/ stays: stage 2 copies the entrypoint and configs from it).
-# Note: Dockerfile.vercel, vercel.json, docker/apache/vhost.vercel.conf,
-# and docker/entrypoint.vercel.sh are the Vercel-deployment variant
-# (ADR-006) and must not leak into the Render image either.
+# This .dockerignore is shared by BOTH images (the Vercel `Dockerfile`
+# and the Render `Dockerfile.render`); each one's own Dockerfile name
+# and the other's variant files are excluded so neither image carries
+# stale deployment-target files in its /var/www/html.
 Dockerfile
-Dockerfile.vercel
+Dockerfile.render
 docker-compose.yml
-vercel.json
 
 # Host build artifacts — regenerated inside stage 1.
 vendor/
