@@ -133,3 +133,24 @@ lockfile (16 Symfony components).
 
 Verification:
 - composer.lock analysis (documented in ADR-004)
+
+## Merge — 094fceb
+
+Date: 2026-09-02
+Source Branch: feature/TASK-002-docker-deployment (f4cfff8)
+Target Branch: main
+
+Result:
+MERGED (--no-ff; 11 files, 564 insertions)
+
+Verification on main (independent, re-run after merge):
+- Stage-1 simulation (composer install --no-dev, dump-autoload +
+  package:discover): PASS
+- Runtime simulation (entrypoint, all routes, EN/ES, contact form,
+  volume persistence, APP_KEY branches, idempotent restart): 23/23 PASS
+- php artisan test: 14 passed (101 assertions)
+- Remaining (environmental, not in-repo): docker build / compose up on a
+  real Docker host (OBS-004)
+
+Result: PARTIAL — everything authorable and simulation-verifiable is done
+and merged; image build execution pending a Docker host.
