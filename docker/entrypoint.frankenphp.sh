@@ -45,6 +45,29 @@ mkdir -p \
     "$STORAGE_DIR/logs" \
     "$EPHEMERAL_ROOT/bootstrap-cache"
 
+# ---------------------------------------------------------------------------
+# 1b. Load ALL env vars from .env into the shell environment (BEFORE overrides).
+#     FrankenPHP reads env vars natively and passes them to PHP. phpdotenv
+#     (Laravel's .env loader) isn't loading /app/.env properly under
+#     FrankenPHP's persistent process model. We load every KEY=VALUE from
+#     .env into the shell env so FrankenPHP passes them all to PHP.
+#
+#     This must happen BEFORE the Vercel-specific overrides (step 2b) so that
+#     the overrides (SESSION_DRIVER=cookie, CACHE_STORE=array, etc.) take
+#     priority over the .env values (SESSION_DRIVER=file, etc.).
+# ---------------------------------------------------------------------------
+if [ ! -f .env ] && [ -f .env.example ]; then
+    cp .env.example .env
+fi
+
+if [ -f .env ]; then
+    set -a
+    # shellcheck disable=SC1090
+    . ./.env
+    set +a
+    echo "Loaded ALL env vars from .env (APP_KEY, APP_LOCALE, etc.)" >&2
+fi
+
 # Symlink storage/ if it's not already a symlink. Non-fatal: if /app is
 # read-only, try subdirectory symlinks as fallback.
 if [ ! -L storage ]; then
@@ -108,10 +131,10 @@ mkdir -p \
 export VIEW_COMPILED_PATH="$EPHEMERAL_ROOT/framework/views"
 
 # Sessions → cookie driver (no file I/O, no DB I/O — safest for ephemeral FS)
-export SESSION_DRIVER="${SESSION_DRIVER:-cookie}"
+export SESSION_DRIVER=cookie
 
 # Cache → array driver (no file I/O, no DB I/O — in-memory per request)
-export CACHE_STORE="${CACHE_STORE:-array}"
+export CACHE_STORE=array
 
 # Maintenance mode → cache driver with array store (no file I/O, no DB I/O).
 # The default 'file' driver writes to storage/framework/ which is read-only
@@ -119,55 +142,22 @@ export CACHE_STORE="${CACHE_STORE:-array}"
 # during bootstrap (ArgumentCountError at Manager::createDriver).
 # The 'cache' driver with 'array' store is per-request, non-persistent,
 # but we never enable maintenance mode on this demo anyway.
-export APP_MAINTENANCE_DRIVER="${APP_MAINTENANCE_DRIVER:-cache}"
-export APP_MAINTENANCE_STORE="${APP_MAINTENANCE_STORE:-array}"
+export APP_MAINTENANCE_DRIVER=cache
+export APP_MAINTENANCE_STORE=array
 
 # Logs → stderr (captured by Vercel's log system, no file I/O)
-export LOG_CHANNEL="${LOG_CHANNEL:-stderr}"
-export LOG_STACK="${LOG_STACK:-stderr}"
+export LOG_CHANNEL=stderr
+export LOG_STACK=stderr
 
 # APP_DEBUG → true temporarily to expose any remaining errors. Set to false
 # once the deployment is confirmed working.
-export APP_DEBUG="${APP_DEBUG:-true}"
-export APP_ENV="${APP_ENV:-production}"
+export APP_DEBUG=true
+export APP_ENV=production
 
 echo "VIEW_COMPILED_PATH=$VIEW_COMPILED_PATH" >&2
 echo "SESSION_DRIVER=$SESSION_DRIVER" >&2
 echo "CACHE_STORE=$CACHE_STORE" >&2
 echo "LOG_CHANNEL=$LOG_CHANNEL" >&2
-
-# ---------------------------------------------------------------------------
-# 3. APP_KEY — extract from .env and export as env var.
-#    FrankenPHP reads env vars natively (unlike Apache+mod_php), so we export
-#    APP_KEY directly. This bypasses any phpdotenv loading issues — the key
-#    is available to PHP via $_ENV / getenv() / env() without depending on
-#    phpdotenv finding and parsing the .env file at runtime.
-# ---------------------------------------------------------------------------
-if [ ! -f .env ] && [ -f .env.example ]; then
-    cp .env.example .env
-fi
-
-# Extract APP_KEY from .env (the shipped .env has a valid key).
-if [ -f .env ]; then
-    APP_KEY_FROM_FILE=$(grep '^APP_KEY=' .env 2>/dev/null | cut -d= -f2-)
-    if [ -n "$APP_KEY_FROM_FILE" ]; then
-        export APP_KEY="$APP_KEY_FROM_FILE"
-        echo "APP_KEY exported from .env (length: ${#APP_KEY})" >&2
-    else
-        echo "WARNING: APP_KEY not found in .env" >&2
-        # Generate one as last resort
-        php artisan key:generate --force 2>/dev/null || echo "WARNING: key:generate failed" >&2
-        # Re-read after generation
-        APP_KEY_FROM_FILE=$(grep '^APP_KEY=' .env 2>/dev/null | cut -d= -f2-)
-        [ -n "$APP_KEY_FROM_FILE" ] && export APP_KEY="$APP_KEY_FROM_FILE"
-    fi
-fi
-
-# Also export APP_NAME (needed by config/app.php)
-if [ -f .env ]; then
-    APP_NAME_FROM_FILE=$(grep '^APP_NAME=' .env 2>/dev/null | cut -d= -f2-)
-    [ -n "$APP_NAME_FROM_FILE" ] && export APP_NAME="$APP_NAME_FROM_FILE"
-fi
 
 # ---------------------------------------------------------------------------
 # 4. Migrations (idempotent). Non-fatal: if migrate fails, the app still
