@@ -3,6 +3,40 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
+// ---------------------------------------------------------------------------
+// SQLite path resolution for read-only-filesystem deployment targets (Vercel).
+//
+// Laravel's default SQLite path is database_path('database.sqlite') =
+// /var/www/html/database/database.sqlite. On Vercel Container Deployments,
+// /var/www/html is in the read-only image layer at request time, so SQLite
+// can't open the file for writing (it needs write access to the file AND
+// the directory for journal/WAL files). The entrypoint materializes
+// DB_DATABASE into .env (ADR-008), but if .env itself isn't writable (read-
+// only filesystem), that materialization silently fails and Laravel falls
+// back to the default path.
+//
+// This code-level fallback resolves the SQLite path BEFORE env() is consulted,
+// checking whether the default path's directory is writable. If it isn't
+// (Vercel), it falls back to /tmp/storefront/database.sqlite (which the
+// entrypoint creates and migrates). Safe for local dev and Render (where
+// the default path IS writable, so the fallback doesn't kick in).
+//
+// See .agent/DECISIONS/ADR-009-vercel-config-level-fallbacks.md and
+// .agent/OBSERVATIONS/OBS-010-vercel-readonly-filesystem-breaks-env-override.md.
+// ---------------------------------------------------------------------------
+$sqliteDefaultPath = database_path('database.sqlite');
+$sqliteDefaultDir = dirname($sqliteDefaultPath);
+if (!is_dir($sqliteDefaultDir) || !is_writable($sqliteDefaultDir)) {
+    // Read-only image layer (Vercel) — use the ephemeral /tmp path that
+    // the entrypoint creates and migrates.
+    $sqliteDefaultPath = '/tmp/storefront/database.sqlite';
+    // Ensure the directory exists (in case the entrypoint hasn't run yet,
+    // e.g. during a test or a misconfigured container).
+    if (!is_dir(dirname($sqliteDefaultPath))) {
+        @mkdir(dirname($sqliteDefaultPath), 0777, true);
+    }
+}
+
 return [
 
     /*
@@ -35,7 +69,7 @@ return [
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
-            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            'database' => env('DB_DATABASE', $sqliteDefaultPath),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
             'busy_timeout' => null,

@@ -23,8 +23,23 @@
 
 set -eu
 
+# Diagnostics: trace every command to stderr so Vercel's build/runtime
+# logs show exactly what the entrypoint did, in what order, and where it
+# failed (if it fails). Without this, runtime errors like
+# "DatabaseManager.php line 226" are opaque — we can't tell whether the
+# entrypoint's .env materialization, storage symlink, or migrate step
+# succeeded.
+set -x
+
 APP_DIR="${APP_DIR:-/var/www/html}"
 cd "$APP_DIR"
+
+echo "=== Vercel entrypoint START ===" >&2
+echo "APP_DIR=$APP_DIR" >&2
+echo "EPHEMERAL_ROOT=${EPHEMERAL_ROOT:-/tmp/storefront}" >&2
+echo "PORT=${PORT:-<unset, will default to 8080>}" >&2
+echo "DB_DATABASE=${DB_DATABASE:-<unset>}" >&2
+echo "id=$(id)" >&2
 
 # ---------------------------------------------------------------------------
 # 1. Writable runtime directories — relocated to /tmp because Vercel's
@@ -46,9 +61,23 @@ mkdir -p \
 # Laravel's compiled views, sessions, cache, and logs land somewhere
 # writable. The image-shipped storage/ tree is preserved in git via
 # .gitignore placeholder files only; nothing of value is destroyed here.
+#
+# Non-fatal: if /var/www/html is read-only (can't rm/ln), log a warning and
+# continue — the app may still work if the shipped storage/ is writable,
+# or it may crash with a clearer error that points to storage/ writability
+# rather than the opaque DatabaseManager error.
 if [ ! -L storage ]; then
-    rm -rf storage
-    ln -s "$STORAGE_DIR" storage
+    if rm -rf storage 2>/dev/null && ln -s "$STORAGE_DIR" storage 2>/dev/null; then
+        echo "storage/ symlinked to $STORAGE_DIR" >&2
+    else
+        echo "WARNING: could not symlink storage/ (read-only filesystem?). " >&2
+        echo "  Trying subdirectory-level symlinks as fallback..." >&2
+        for sub in framework/views framework/sessions framework/cache/data logs; do
+            rm -rf "storage/$sub" 2>/dev/null || true
+            ln -s "$STORAGE_DIR/$sub" "storage/$sub" 2>/dev/null || true
+        done
+        echo "  Fallback complete (some subdirs may not be symlinked)" >&2
+    fi
 fi
 
 # ---------------------------------------------------------------------------
@@ -79,6 +108,7 @@ if [ -f .env ] \
     php artisan key:generate --force
 fi
 
+# ---------------------------------------------------------------------------
 # 3b. ALWAYS materialize DB_DATABASE into .env, pointing at the file the
 #     entrypoint just created in step 2. Without this, Laravel falls back
 #     to database_path('database.sqlite') = /var/www/html/database/database.sqlite
@@ -86,22 +116,42 @@ fi
 #     crashes the DB connection with "unable to open database file" (surfaces
 #     as DatabaseManager.php line 226). OBS-009.
 #
+#     NOTE: if /var/www/html/.env is read-only (Vercel may mount the image
+#     layer read-only even for the entrypoint), this sed -i will FAIL. In
+#     that case, config/database.php has a code-level fallback (ADR-009)
+#     that detects the read-only path and uses /tmp/storefront/database.sqlite
+#     directly — so the app works even without .env materialization.
+#
 #     This block differs from the Render entrypoint (entrypoint.sh), which
 #     only materializes DB_DATABASE when the env var is set. On Vercel we
 #     must ALWAYS materialize it because the default Laravel path is in
 #     the read-only image filesystem, not in /tmp.
 if [ -f .env ]; then
     if grep -q '^DB_DATABASE=' .env; then
-        sed -i "s|^DB_DATABASE=.*|DB_DATABASE=$DB_FILE|" .env
+        sed -i "s|^DB_DATABASE=.*|DB_DATABASE=$DB_FILE|" .env 2>/dev/null \
+            && echo "DB_DATABASE materialized into .env: $DB_FILE" >&2 \
+            || echo "WARNING: sed -i .env failed (read-only filesystem?). Relying on config/database.php fallback." >&2
     else
-        printf '\nDB_DATABASE=%s\n' "$DB_FILE" >> .env
+        printf '\nDB_DATABASE=%s\n' "$DB_FILE" >> .env 2>/dev/null \
+            && echo "DB_DATABASE appended to .env: $DB_FILE" >&2 \
+            || echo "WARNING: could not append to .env (read-only filesystem?). Relying on config/database.php fallback." >&2
     fi
+else
+    echo "WARNING: .env not found. Relying on config/database.php fallback." >&2
 fi
 
 # ---------------------------------------------------------------------------
 # 4. Migrations (idempotent — safe on every container start).
+#    Non-fatal: if migrate fails (e.g., DB file can't be created), log
+#    the error and continue — Apache will still start, and the /__debug
+#    route can be used to diagnose. The config-level fallback in
+#    config/database.php will point at /tmp/storefront/database.sqlite.
 # ---------------------------------------------------------------------------
-php artisan migrate --force
+php artisan migrate --force 2>&1 || {
+    echo "WARNING: php artisan migrate failed (exit $?" >&2
+    echo "  The app will still start, but contact form submissions may fail." >&2
+    echo "  Visit /__debug to diagnose the DB path and file status." >&2
+}
 
 # ---------------------------------------------------------------------------
 # 5. Apache port. Vercel injects PORT (typically 8080); Apache's Listen
@@ -143,4 +193,8 @@ fi
 # ---------------------------------------------------------------------------
 # 7. Hand off to the container command (default: apache2-foreground).
 # ---------------------------------------------------------------------------
+echo "=== Vercel entrypoint DONE — starting Apache on port $PORT ===" >&2
+echo "DB file: $DB_FILE" >&2
+echo "Storage: $(ls -la storage 2>&1 | head -1)" >&2
+echo ".env DB_DATABASE: $(grep '^DB_DATABASE=' .env 2>/dev/null || echo '<not set>')" >&2
 exec "$@"
