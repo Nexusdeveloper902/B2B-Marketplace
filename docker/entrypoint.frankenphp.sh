@@ -137,18 +137,36 @@ echo "CACHE_STORE=$CACHE_STORE" >&2
 echo "LOG_CHANNEL=$LOG_CHANNEL" >&2
 
 # ---------------------------------------------------------------------------
-# 3. APP_KEY — generate if not set. FrankenPHP passes it to PHP natively.
+# 3. APP_KEY — extract from .env and export as env var.
+#    FrankenPHP reads env vars natively (unlike Apache+mod_php), so we export
+#    APP_KEY directly. This bypasses any phpdotenv loading issues — the key
+#    is available to PHP via $_ENV / getenv() / env() without depending on
+#    phpdotenv finding and parsing the .env file at runtime.
 # ---------------------------------------------------------------------------
 if [ ! -f .env ] && [ -f .env.example ]; then
     cp .env.example .env
 fi
 
-# Generate APP_KEY if .env doesn't have one. Since FrankenPHP reads env vars
-# natively, we can also export APP_KEY if it's set as a container env var.
-if [ -f .env ] && ! grep -q '^APP_KEY=base64:' .env; then
-    if [ -z "${APP_KEY:-}" ]; then
+# Extract APP_KEY from .env (the shipped .env has a valid key).
+if [ -f .env ]; then
+    APP_KEY_FROM_FILE=$(grep '^APP_KEY=' .env 2>/dev/null | cut -d= -f2-)
+    if [ -n "$APP_KEY_FROM_FILE" ]; then
+        export APP_KEY="$APP_KEY_FROM_FILE"
+        echo "APP_KEY exported from .env (length: ${#APP_KEY})" >&2
+    else
+        echo "WARNING: APP_KEY not found in .env" >&2
+        # Generate one as last resort
         php artisan key:generate --force 2>/dev/null || echo "WARNING: key:generate failed" >&2
+        # Re-read after generation
+        APP_KEY_FROM_FILE=$(grep '^APP_KEY=' .env 2>/dev/null | cut -d= -f2-)
+        [ -n "$APP_KEY_FROM_FILE" ] && export APP_KEY="$APP_KEY_FROM_FILE"
     fi
+fi
+
+# Also export APP_NAME (needed by config/app.php)
+if [ -f .env ]; then
+    APP_NAME_FROM_FILE=$(grep '^APP_NAME=' .env 2>/dev/null | cut -d= -f2-)
+    [ -n "$APP_NAME_FROM_FILE" ] && export APP_NAME="$APP_NAME_FROM_FILE"
 fi
 
 # ---------------------------------------------------------------------------
