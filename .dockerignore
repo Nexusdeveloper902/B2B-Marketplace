@@ -1,0 +1,28 @@
+# Version control and agent memory never enter the image.
+.git
+.gitignore
+.gitattributes
+.agent
+
+# Development-only files (tests run on a dev machine, not in the container).
+.editorconfig
+phpunit.xml
+.phpunit.result.cache
+tests/
+
+# Docker build files themselves are not needed inside the image
+# (docker/ stays: stage 2 copies the entrypoint and configs from it).
+Dockerfile
+docker-compose.yml
+
+# Host build artifacts — regenerated inside stage 1.
+vendor/
+
+# Runtime state must not leak into the image.
+database/database.sqlite
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/cache/data/*
+storage/logs/*
+bootstrap/cache/packages.php
+bootstrap/cache/services.php
