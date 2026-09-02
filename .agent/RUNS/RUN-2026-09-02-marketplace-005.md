@@ -77,7 +77,7 @@ README, ADR-006, and OBS-007.
 - .agent/STATE/SNAPSHOT-RUN-2026-09-02-marketplace-005.md (new)
 
 ## Commits Created
-- (hash recorded in TASK-004 commit entry after `git commit`)
+- 5dd4e48 — feat(vercel): add Dockerfile.vercel + entrypoint + vhost + vercel.json
 
 ## Branches
 - main (direct commit — single coherent Vercel-deployment-variant unit

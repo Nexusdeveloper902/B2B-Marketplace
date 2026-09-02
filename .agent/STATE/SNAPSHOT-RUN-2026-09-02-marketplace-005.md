@@ -66,7 +66,7 @@ unchanged.
   unaffected.
 
 ## Current Main Commit
-(recorded after `git commit` + `git push`)
+5dd4e48 — feat(vercel): add Dockerfile.vercel + entrypoint + vhost + vercel.json
 
 ## Current Main Status
 BUILDABLE — additive change only (4 new files + 2 file updates + 6 new
