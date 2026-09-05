@@ -16,6 +16,10 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <!-- Test-only encryption key: the repo no longer tracks .env (ADR-013),
+             so the test suite carries its own disposable key. Fresh clones run
+             php artisan test without any local setup. -->
+        <env name="APP_KEY" value="base64:Ru5wNKEzC2I6qo7BrbyVMZ4IHNMxPDfhONuHKgc0a6U="/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
