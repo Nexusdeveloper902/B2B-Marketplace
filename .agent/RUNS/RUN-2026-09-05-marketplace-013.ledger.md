@@ -82,3 +82,23 @@ RESULT: (recorded after merge)
 ACTION: Push
 COMMAND: git push origin feature/TASK-011-stateless-storefront main
 RESULT: (recorded after push)
+
+## 2026-09-05 (post-merge catch)
+ACTION: Main verification (first attempt)
+COMMAND: php artisan test (on main after merge 353d3e6)
+RESULT: FAIL — 14 failed, MissingAppKeyException. Fresh checkout had no
+.env (merge deleted the tracked file); feature-branch runs were masked by
+the untracked .env still on disk. Root cause: untracking .env removed the
+APP_KEY source for bare local runs (Docker paths unaffected — entrypoints
+generate keys).
+
+ACTION: Repair per §7.10
+COMMAND: git checkout feature/…; patch phpunit.xml (test-only APP_KEY) +
+README quickstart (cp .env.example .env; key:generate); fresh-clone
+simulation; live serve smoke test on :8031
+RESULT: 17 passed / 120 assertions; 5 pages 200; /__debug 404; POST w/o
+CSRF token -> 419 (CSRF confirmed); contact.request in logs
+
+ACTION: Commit 5
+COMMIT: 87581e4
+RESULT: SUCCESS — re-merge to main follows; records updated before push.

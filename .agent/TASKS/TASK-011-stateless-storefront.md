@@ -93,3 +93,25 @@ Verification:
 - Note: a stale sandbox classmap (vendor/ not refreshed after file deletion)
   caused a false positive until `composer dump-autoload`; not reproducible
   from a fresh clone.
+
+## Commit — 87581e4
+
+Date: 2026-09-05
+Branch: feature/TASK-011-stateless-storefront
+
+Summary:
+Fresh-clone DX fix, caught by post-merge verification on main.
+
+Changes:
+- phpunit.xml: disposable test-only APP_KEY (freshly generated)
+- README quickstart: cp .env.example .env + php artisan key:generate --force
+
+Verification:
+- Fresh-clone simulation (no .env on disk): 17 passed / 120 assertions
+- Live serve smoke test: 5 pages 200, /__debug 404, POST /contact 419
+  without CSRF token (CSRF active), contact.request visible in logs
+
+Notes:
+- Root cause: feature-branch testing was masked by the untracked .env
+  still on disk; the merge to main deleted it. Lesson recorded in
+  RUN-013 Discoveries.
