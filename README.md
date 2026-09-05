@@ -31,6 +31,8 @@ migrations.**
 
 ```bash
 composer install
+cp .env.example .env        # the repo does not ship .env (ADR-013)
+php artisan key:generate --force
 php artisan serve
 ```
 
@@ -134,6 +136,9 @@ docker run --rm -p 8080:8080 -e PORT=8080 storefront-vercel
 ```bash
 php artisan test
 ```
+
+No local setup needed — `phpunit.xml` carries a disposable test-only
+`APP_KEY` so a fresh clone can run the suite immediately.
 
 ## Design
 
