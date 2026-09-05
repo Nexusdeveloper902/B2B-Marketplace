@@ -71,8 +71,9 @@ RUN composer dump-autoload --optimize --no-interaction
 FROM dunglas/frankenphp:1-php${PHP_VERSION}
 
 # Install the PHP extensions this app needs. FrankenPHP's base image ships
-# most extensions; pdo_sqlite and sqlite3 are needed for the contact form.
-RUN install-php-extensions pdo_sqlite sqlite3 mbstring opcache
+# most extensions; mbstring is required by Laravel. (The storefront is
+# stateless since ADR-013 — no pdo_sqlite/sqlite3 needed anymore.)
+RUN install-php-extensions mbstring opcache
 
 # Copy the application + vendor from stage 1.
 WORKDIR /app
@@ -97,7 +98,8 @@ RUN mkdir -p /app/storage/framework/views \
 
 EXPOSE 80
 
-# Prepares writable directories, creates the SQLite file, generates APP_KEY
-# if missing, runs migrations, then execs frankenphp.
+# Prepares writable directories, sources env vars (.env or .env.example),
+# generates APP_KEY if missing, then execs frankenphp. Stateless — no SQLite,
+# no migrations (ADR-013).
 ENTRYPOINT ["storefront-entrypoint"]
 CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile"]

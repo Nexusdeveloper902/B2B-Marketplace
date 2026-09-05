@@ -2,16 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ContactRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ContactController extends Controller
 {
     /**
-     * Contact / request-demo form. Persisted to SQLite, no email integration
-     * (out of scope by design — see PROJECT.md).
+     * Contact / request-demo form.
+     *
+     * The storefront is STATELESS (see .agent/DECISIONS/ADR-013-stateless-no-database.md):
+     * there is no database layer, so submissions are written to the application
+     * log — stderr on Vercel (captured by Vercel's log drain), storage/logs/
+     * laravel.log on Render or a local dev machine. No email delivery, no
+     * persistence beyond the log channel (deliberate product decision).
      */
     public function show(): View
     {
@@ -28,13 +33,7 @@ class ContactController extends Controller
             'message' => ['required', 'string', 'min:10', 'max:2000'],
         ], __('forms.validation'));
 
-        ContactRequest::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'organization' => $validated['organization'],
-            'tier' => $validated['tier'],
-            'message' => $validated['message'],
-        ]);
+        Log::info('contact.request', $validated);
 
         return redirect()
             ->route('contact.thankYou')

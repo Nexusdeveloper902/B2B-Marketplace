@@ -9,7 +9,8 @@
 # requires the `.vercel` suffix and a `vercel.json` with `services` +
 # `runtime: "container"`).
 #
-# Production image: Apache + mod_php + SQLite. No Node, no external services.
+# Production image: Apache + mod_php. Stateless — no database, no Node, no
+# external services (see ADR-013).
 #   Build:   docker build -t presence-platform-storefront .
 #   Run:     docker run --rm -p 8080:80 presence-platform-storefront
 #   Compose: docker compose up -d --build   (docker-compose.yml references this file)
@@ -47,8 +48,8 @@ RUN composer dump-autoload --optimize --no-interaction
 # ---------------------------------------------------------------------------
 # Stage 2 — runtime.
 # php:8.4-apache already ships every extension this app requires:
-# pdo_sqlite, sqlite3, mbstring, openssl, dom, tokenizer, ctype, curl,
-# fileinfo. Nothing is compiled beyond OPcache.
+# mbstring, openssl, dom, tokenizer, ctype, curl, fileinfo. Nothing is
+# compiled beyond OPcache. (No pdo_sqlite/sqlite3 needed — stateless, ADR-013.)
 # Note: the lockfile's Symfony components set a PHP >= 8.4.1 floor — the
 # 8.4 tag tracks the latest patch release, so it always satisfies it.
 # ---------------------------------------------------------------------------
@@ -67,14 +68,17 @@ COPY docker/apache/vhost.conf /etc/apache2/sites-available/storefront.conf
 RUN a2dissite 000-default \
     && a2ensite storefront
 
-# Application + vendor + the tracked, secret-free .env from stage 1.
+# Application + vendor. No .env ships in the image (removed from the repo for
+# secret hygiene); the entrypoint materializes one from .env.example and
+# generates an APP_KEY at startup when none is provided.
+
 COPY --from=vendor --chown=www-data:www-data /app /var/www/html
 
 COPY --chmod=0755 docker/entrypoint.sh /usr/local/bin/storefront-entrypoint
 
 EXPOSE 80
 
-# Prepares writable directories, the SQLite file and migrations, then execs
-# the container command (default: apache2-foreground).
+# Prepares writable directories and an APP_KEY, then execs the container
+# command (default: apache2-foreground).
 ENTRYPOINT ["storefront-entrypoint"]
 CMD ["apache2-foreground"]

@@ -3,9 +3,11 @@
 # One-command deployment:
 #   docker compose up -d --build
 # The storefront is then served on http://localhost:8080 (override the
-# published port with APP_PORT=3000 docker compose up -d). Contact
-# submissions are persisted in the named volume `storefront-data` (SQLite
-# file), so they survive rebuilds and container re-creates.
+# published port with APP_PORT=3000 docker compose up -d).
+#
+# The app is STATELESS (ADR-013): no database, no volumes. Contact requests
+# are written to the application log (`docker compose logs storefront`),
+# not persisted.
 
 name: presence-platform-storefront
 
@@ -20,14 +22,6 @@ services:
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
-      DB_CONNECTION: sqlite
-      # The entrypoint applies this path to the app configuration at
-      # startup, so the SQLite file lives on the persistent volume (not
-      # the container filesystem) regardless of how the web SAPI exposes
-      # environment variables.
-      DB_DATABASE: /var/www/storefront-data/database.sqlite
-    volumes:
-      - storefront-data:/var/www/storefront-data
     restart: unless-stopped
     # php:apache images ship no curl/wget binary, so the healthcheck uses
     # the PHP CLI against Laravel's /up health route.
@@ -37,6 +31,3 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
-
-volumes:
-  storefront-data:

@@ -21,9 +21,13 @@ building. Nothing here should ever block or depend on the platform build, and
 nothing in the platform build should ever depend on this app.
 
 ## Data
-This app uses SQLite for persistence (single file, `database/database.sqlite`).
-There is no need for MySQL/Postgres here — the only persisted data is contact/demo
-requests submitted through the storefront's contact form.
+STATELESS — this app has NO database (decision of 2026-09-05, see
+`.agent/DECISIONS/ADR-013-stateless-no-database.md`, which supersedes
+ADR-001-sqlite-over-server-database.md). Contact/demo requests are validated
+server-side and written to the application log (stderr on Vercel,
+`storage/logs/laravel.log` on Render/local) — they are not persisted. There
+are no migrations, no models, and no DB env vars. Do not reintroduce a
+database without a new explicit ADR.
 
 ## Design bar
 This app is judged partly on visual presentation. It must look like a deliberately
