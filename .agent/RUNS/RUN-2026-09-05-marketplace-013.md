@@ -128,3 +128,22 @@ the removed migrate step.
   (writable FS there) — that is intentional, not an oversight.
 - Contact leads live in the platform logs only (stderr on Vercel,
   storage/logs/laravel.log on Render).
+
+## Addendum — Push Completed (2026-09-05)
+- The push blocker is RESOLVED. A replacement fine-grained PAT with
+  Contents:write on this repository was provided (verified via the GitHub
+  API: permissions.push=true, admin=true). Used via environment variable
+  expansion only; no credential value written to any file, commit, remote
+  config, or record (§22).
+- Push result: main ecde2d5..168c4ce (9 commits: 66971a7, 5ce315a,
+  45902f0, 353d3e6, 87581e4, 9b33e05, aa94ca2, 168c4ce plus the
+  feature-branch lineage) and new remote branch
+  feature/TASK-011-stateless-storefront.
+- Post-push verification: local main == origin/main == GitHub API main
+  == 168c4ce0c1dd609f0e67261b946197472bb31d4b. Remote default branch
+  main is now the stateless storefront.
+- The "PUSH BLOCKED" wording in "## Result" above reflects the state at
+  the time of writing and is intentionally NOT rewritten (append-only
+  protocol). This addendum is the final word: push completed.
+- Note: the replacement token was pasted in a chat transcript — rotation
+  recommended once this session ends (same hygiene note as the ledger).

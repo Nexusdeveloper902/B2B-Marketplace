@@ -66,3 +66,13 @@ test: 5 pages 200, /__debug 404, CSRF active, submissions logged.
 ## Active Branches
 - main @ aa94ca2 (local; remote still ecde2d5)
 - feature/TASK-011-stateless-storefront (fully merged; kept for reference)
+
+## Addendum — post-push (2026-09-05)
+- PUSH BLOCKED above is RESOLVED: main pushed (ecde2d5..168c4ce, 9
+  commits) with a replacement write-scoped token; the feature branch was
+  pushed as well. Remote main == local main == 168c4ce (verified via
+  git fetch and the GitHub API).
+- Current main commit: 168c4ce (docs(memory): finalize RUN-013).
+- Residual security note: the replacement token appeared in a chat
+  transcript; rotate it after this session. The old APP_KEY remains in
+  public history but is unused by any deployment (ADR-013 posture).

@@ -115,3 +115,12 @@ Notes:
 - Root cause: feature-branch testing was masked by the untracked .env
   still on disk; the merge to main deleted it. Lesson recorded in
   RUN-013 Discoveries.
+
+---
+
+## Push (2026-09-05, follow-up)
+Status: PUSHED to origin — main ecde2d5..168c4ce (9 commits) and new
+remote branch feature/TASK-011-stateless-storefront, using a replacement
+write-scoped token (env-var use only, §22). Post-push verification:
+3-way SHA match at 168c4ce. TASK-011 fully closed: implemented, merged,
+verified, published.

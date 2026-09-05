@@ -112,3 +112,18 @@ as the owner but lacks Contents:write for this repository. origin/main
 unchanged at ecde2d5. Local main (aa94ca2) is complete and verified; remote
 integration is blocked on a token with write scope. No credential values
 recorded per §22.
+
+## 2026-09-05 (push retry — write-scoped token)
+ACTION: Push (retry)
+COMMAND: export GITHUB_TOKEN=<env only>; git push
+  https://x-access-token:${GITHUB_TOKEN}@github.com/… main
+  feature/TASK-011-stateless-storefront
+RESULT: SUCCESS — main ecde2d5..168c4ce (9 commits) and new branch
+feature/TASK-011-stateless-storefront pushed. Pre-check via GitHub API:
+permissions.push=true (Contents:write present). Post-push: three-way SHA
+match (local main == origin/main == API main == 168c4ce). Token used via
+environment variable expansion only; never written to files, remotes, or
+records (§22). Root cause of the earlier "Invalid username or token"
+failure: sandbox env non-persistence between tool invocations (the
+credential helper expanded an EMPTY variable), not token scope — recorded
+so the next agent exports the token in the SAME invocation as the push.
