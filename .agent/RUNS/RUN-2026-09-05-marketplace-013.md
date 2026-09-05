@@ -7,7 +7,8 @@ TASK-011-stateless-storefront
 Full-Stack Engineer (Laravel / Blade) — stateless rework + security fixes.
 
 ## Result
-COMPLETED (merge to main + verification after this record; see snapshot)
+COMPLETED locally (main integrated at aa94ca2, verified) / PUSH BLOCKED
+(403 — token lacks Contents:write; see Problems/Blockers and ledger)
 
 ## Resume Notes
 - The run brief referenced RUN-2026-09-02-marketplace-002 as "current" and
@@ -60,7 +61,8 @@ the removed migrate step.
 - feature/TASK-011-stateless-storefront (work), main (integration)
 
 ## Merge Status
-- Merged to main after verification (see snapshot for the merge hash).
+- MERGED locally: main @ aa94ca2 (verified: 17 tests / 120 assertions).
+- NOT PUSHED: remote origin/main remains at ecde2d5 (403 on push).
 
 ## Verification
 - Baseline before changes: php artisan test — 14 passed (101 assertions): PASS
@@ -97,9 +99,15 @@ the removed migrate step.
   throttled. Supersedes ADR-001.
 
 ## Problems / Blockers
-- None blocking. Residual risk: container-image builds could not be
-  exercised in this sandbox (no Docker daemon — OBS-004); mitigations
-  listed under Verification.
+- PUSH BLOCKED: the provided fine-grained GitHub token authenticates as
+  Nexusdeveloper902 but was denied write access to this repository
+  (403, Contents:write missing). Remedy: grant Contents:read/write on
+  B2B-Marketplace for the token, or push manually:
+    git push origin main feature/TASK-011-stateless-storefront
+  (from a clone of this run's working tree).
+- Residual risk: container-image builds could not be exercised in this
+  sandbox (no Docker daemon — OBS-004); mitigations listed under
+  Verification.
 
 ## Remaining Work
 - Optional: purge `.env` from git history (requires history rewrite — out

@@ -102,3 +102,13 @@ CSRF token -> 419 (CSRF confirmed); contact.request in logs
 ACTION: Commit 5
 COMMIT: 87581e4
 RESULT: SUCCESS — re-merge to main follows; records updated before push.
+
+## 2026-09-05 (push attempt)
+ACTION: Push
+COMMAND: git push (one-shot authenticated URL) main + feature/TASK-011-stateless-storefront
+RESULT: FAIL — HTTP 403, "Permission to Nexusdeveloper902/B2B-Marketplace
+denied to Nexusdeveloper902". The provided fine-grained token authenticates
+as the owner but lacks Contents:write for this repository. origin/main
+unchanged at ecde2d5. Local main (aa94ca2) is complete and verified; remote
+integration is blocked on a token with write scope. No credential values
+recorded per §22.
