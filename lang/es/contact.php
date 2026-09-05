@@ -23,7 +23,7 @@ return [
         'message' => '¿Qué le gustaría rastrear?',
         'message_hint' => 'Una o dos frases bastan: asistencia, comidas, reciclaje o algo personalizado.',
         'submit' => 'Enviar solicitud',
-        'privacy' => 'Sus datos se guardan solo para responder esta solicitud.',
+        'privacy' => 'Sus datos se usan solo para responder esta solicitud.',
         'aria_errors' => 'El formulario tiene errores',
     ],
 

@@ -23,7 +23,7 @@ return [
         'message' => 'What would you like to track?',
         'message_hint' => 'A sentence or two is enough: attendance, meals, recycling, or something custom.',
         'submit' => 'Send request',
-        'privacy' => 'Your details are stored only to answer this request.',
+        'privacy' => 'Your details are only used to answer this request.',
         'aria_errors' => 'The form has errors',
     ],
 

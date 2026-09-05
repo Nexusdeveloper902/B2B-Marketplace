@@ -9,10 +9,16 @@
 # What this entrypoint does:
 #   1. Creates writable directories in /tmp (Vercel's ephemeral FS)
 #   2. Symlinks storage/ to /tmp/storage
-#   3. Creates the SQLite database file at /tmp
-#   4. Generates APP_KEY if missing
-#   5. Runs migrations
-#   6. Execs frankenphp (which reads $PORT from the env, not from a config file)
+#   3. Loads env vars from .env (falling back to .env.example — the repo no
+#      longer tracks .env; sourcing performs no writes, which matters because
+#      Vercel's filesystem is read-only, see OBS-010)
+#   4. Generates APP_KEY at startup if none was loaded/provided
+#   5. Execs frankenphp (which reads $PORT from the env, not from a config file)
+#
+# The storefront is STATELESS (see .agent/DECISIONS/ADR-013-stateless-no-database.md):
+# no database, no migrations. Contact requests go to the application log
+# (stderr here), not to storage. The SQLite materialization and migrate steps
+# from earlier runs were removed in TASK-011.
 #
 # See .agent/DECISIONS/ADR-011-switch-to-frankenphp.md for why we switched
 # from Apache+mod_php to FrankenPHP.
@@ -46,26 +52,34 @@ mkdir -p \
     "$EPHEMERAL_ROOT/bootstrap-cache"
 
 # ---------------------------------------------------------------------------
-# 1b. Load ALL env vars from .env into the shell environment (BEFORE overrides).
+# 1b. Load ALL env vars into the shell environment (BEFORE overrides).
 #     FrankenPHP reads env vars natively and passes them to PHP. phpdotenv
 #     (Laravel's .env loader) isn't loading /app/.env properly under
-#     FrankenPHP's persistent process model. We load every KEY=VALUE from
-#     .env into the shell env so FrankenPHP passes them all to PHP.
+#     FrankenPHP's persistent process model, so we export every KEY=VALUE
+#     ourselves and let FrankenPHP pass them all to PHP.
 #
-#     This must happen BEFORE the Vercel-specific overrides (step 2b) so that
+#     Since TASK-011 the repository no longer tracks .env (secret hygiene).
+#     When .env is absent from the image we source .env.example DIRECTLY:
+#     sourcing reads without writing, which is safe on Vercel's read-only
+#     filesystem (a `cp .env.example .env` here would fail under set -e,
+#     see OBS-010). Values from a real .env still win when present.
+#
+#     This must happen BEFORE the Vercel-specific overrides (step 2) so that
 #     the overrides (SESSION_DRIVER=cookie, CACHE_STORE=array, etc.) take
-#     priority over the .env values (SESSION_DRIVER=file, etc.).
+#     priority over the sourced values (SESSION_DRIVER=file, etc.).
 # ---------------------------------------------------------------------------
-if [ ! -f .env ] && [ -f .env.example ]; then
-    cp .env.example .env
-fi
-
+ENV_FILE=""
 if [ -f .env ]; then
+    ENV_FILE=.env
+elif [ -f .env.example ]; then
+    ENV_FILE=.env.example
+fi
+if [ -n "$ENV_FILE" ]; then
     set -a
     # shellcheck disable=SC1090
-    . ./.env
+    . "./$ENV_FILE"
     set +a
-    echo "Loaded ALL env vars from .env (APP_KEY, APP_LOCALE, etc.)" >&2
+    echo "Loaded env vars from $ENV_FILE (APP_LOCALE, SESSION_*, etc.)" >&2
 fi
 
 # Symlink storage/ if it's not already a symlink. Non-fatal: if /app is
@@ -91,22 +105,7 @@ if [ ! -L bootstrap/cache ] && [ ! -w bootstrap/cache ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 2. SQLite database file at /tmp (ephemeral, but writable by www-data).
-#    DB_DATABASE env var is read natively by FrankenPHP → PHP → Laravel's env().
-#    No .env materialization needed! (Unlike Apache+mod_php, FrankenPHP passes
-#    env vars to PHP automatically.)
-# ---------------------------------------------------------------------------
-DB_FILE="${DB_DATABASE:-$EPHEMERAL_ROOT/database.sqlite}"
-mkdir -p "$(dirname "$DB_FILE")"
-[ -f "$DB_FILE" ] || touch "$DB_FILE"
-echo "DB file: $DB_FILE" >&2
-
-# Export DB_DATABASE so Laravel's env() picks it up.
-# FrankenPHP passes OS env vars to PHP natively (unlike Apache+mod_php).
-export DB_DATABASE="$DB_FILE"
-
-# ---------------------------------------------------------------------------
-# 2b. Override ALL storage paths via env vars (FrankenPHP reads them natively).
+# 2. Override ALL storage paths via env vars (FrankenPHP reads them natively).
 #
 #     On Vercel, /app is in the read-only image layer. The storage/ symlink
 #     approach (step 1) fails silently because rm -rf storage can't execute
@@ -145,7 +144,8 @@ export CACHE_STORE=array
 export APP_MAINTENANCE_DRIVER=cache
 export APP_MAINTENANCE_STORE=array
 
-# Logs → stderr (captured by Vercel's log system, no file I/O)
+# Logs → stderr (captured by Vercel's log system, no file I/O). Contact
+# requests are logged here — this is now the ONLY record of a submission.
 export LOG_CHANNEL=stderr
 export LOG_STACK=stderr
 
@@ -160,27 +160,35 @@ echo "CACHE_STORE=$CACHE_STORE" >&2
 echo "LOG_CHANNEL=$LOG_CHANNEL" >&2
 
 # ---------------------------------------------------------------------------
-# 4. Migrations (idempotent). Non-fatal: if migrate fails, the app still
-#    starts — /__debug can be used to diagnose.
+# 3. Encryption key (replaces the old migrate step — TASK-011 / ADR-013).
+#    The image carries no .env, and .env.example ships a keyless APP_KEY=,
+#    so generate one at container start unless APP_KEY was provided as a
+#    real deployment environment variable (Vercel project settings).
+#    `key:generate --show` prints a fresh key without touching the
+#    filesystem — required on Vercel's read-only FS.
+#
+#    Consequence: each cold start gets a fresh key, so cookie sessions are
+#    invalidated across deploys/restarts. Acceptable for a stateless
+#    marketing site with no authenticated state.
 # ---------------------------------------------------------------------------
-php artisan migrate --force 2>&1 || {
-    echo "WARNING: migrate failed (exit $?)" >&2
-    echo "  The app will still start. Visit /__debug to diagnose." >&2
-}
+if [ -z "${APP_KEY:-}" ]; then
+    APP_KEY="$(php artisan key:generate --show --no-interaction)"
+    export APP_KEY
+    echo "APP_KEY generated at container start (no key in env or .env)" >&2
+fi
 
 # ---------------------------------------------------------------------------
-# 5. Fix permissions (if running as root).
+# 4. Fix permissions (if running as root).
 # ---------------------------------------------------------------------------
 if [ "$(id -u)" = "0" ]; then
     chown -R www-data:www-data "$EPHEMERAL_ROOT" storage bootstrap/cache 2>/dev/null || true
 fi
 
 # ---------------------------------------------------------------------------
-# 6. Hand off to FrankenPHP. It reads $PORT from the environment and binds
+# 5. Hand off to FrankenPHP. It reads $PORT from the environment and binds
 #    to :{$PORT:80} per the Caddyfile. No port patching needed!
 # ---------------------------------------------------------------------------
 echo "=== FrankenPHP entrypoint DONE — starting FrankenPHP ===" >&2
-echo "DB_DATABASE=$DB_DATABASE" >&2
-echo "APP_KEY set: $([ -n \"${APP_KEY:-}\" ] && echo yes || echo 'checking .env')" >&2
+echo "APP_KEY set: $([ -n \"${APP_KEY:-}\" ] && echo yes || echo no)" >&2
 
 exec "$@"

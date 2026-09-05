@@ -7,7 +7,9 @@ product itself, and it has no dependency on the core platform's backend or
 hardware. See `.agent/PROJECT.md` for the full project context.
 
 - **Framework:** Laravel 13 + Blade (no Livewire/Inertia/SPA, no Node build pipeline)
-- **Storage:** SQLite, one table (`contact_requests`) for contact/demo requests
+- **Storage: NONE — deliberately stateless.** There is no database of any kind
+  (see `.agent/DECISIONS/ADR-013-stateless-no-database.md`). Contact requests are
+  written to the application log, not persisted.
 - **Languages:** English and Spanish — toggle **EN / ES** in the header
 - **No auth, no payments, no multi-vendor mechanics**
 
@@ -19,28 +21,37 @@ hardware. See `.agent/PROJECT.md` for the full project context.
 | `/product` | Product overview — the tap-to-report pipeline, event anatomy |
 | `/pricing` | Packages — Starter / Campus / Enterprise |
 | `/enterprise` | Enterprise — custom labeled-event tracking |
-| `/contact` | Request a demo — validated form, persisted to SQLite |
+| `/contact` | Request a demo — validated form, submission logged (no DB) |
 
 ## Quickstart
 
-Requires PHP >= 8.3 (with `pdo_sqlite`, `mbstring`, `openssl`, `tokenizer`,
-`dom`) and Composer. Nothing else — no Node, no database server, no mail.
+Requires PHP >= 8.3 (with `mbstring`, `openssl`, `tokenizer`, `dom`) and
+Composer. Nothing else — **no Node, no database server, no mail, no
+migrations.**
 
 ```bash
 composer install
-php artisan migrate
 php artisan serve
 ```
 
-Then open `http://127.0.0.1:8000`. The SQLite database file is created
-automatically by the migration. `.env` ships with the repository because this
-app contains no secrets (local SQLite, no mail/API credentials).
+Then open `http://127.0.0.1:8000`.
 
-## Deploy with Docker (Render / persistent volume)
+### Why there is no database
+
+This product decision is explicit and binding (ADR-013, superseding ADR-001):
+the storefront is a marketing site whose only dynamic endpoint is a contact
+form. A database would add a persistence surface, a migration step, and a
+deployment dependency for data nobody operates. Validated submissions are
+written to the application log (`storage/logs/laravel.log` locally, stderr on
+Vercel) so the operator can pick them up from the deployment's log drain. If
+real lead capture is ever needed, add a hosted form backend or a managed DB —
+as a separate, explicit decision.
+
+## Deploy with Docker (Render)
 
 The storefront ships as a self-contained production image — Apache + mod_php,
-SQLite, self-hosted fonts; no Node, no database server, no other services.
-The Render / docker-compose Dockerfile is the repo's default `Dockerfile`:
+self-hosted fonts; no Node, no database, no other services. The Render /
+docker-compose Dockerfile is the repo's default `Dockerfile`:
 
 ```bash
 docker build -t presence-platform-storefront .
@@ -48,24 +59,11 @@ docker run --rm -p 8080:80 presence-platform-storefront
 # storefront at http://localhost:8080
 ```
 
-The entrypoint prepares writable directories, creates and migrates the SQLite
-database on first start (idempotently on every start), then hands off to
-Apache. The tracked `.env` is part of the image and contains no secrets (local
-SQLite, no mail/API credentials). `docker-compose.yml` places the database on
-a persistent volume by passing `DB_DATABASE`, which the entrypoint applies to
-the app configuration at startup; any other variable you pass with
-`-e KEY=value` is available to the entrypoint and CLI.
-
-For a persistent deployment — contact submissions survive rebuilds:
-
-```bash
-docker compose up -d --build       # builds from Dockerfile, migrates, serves on :8080
-docker compose logs -f storefront
-```
-
-`docker-compose.yml` keeps the SQLite file on the `storefront-data` volume
-and adds a healthcheck against Laravel's `/up` route. Publish on a different
-port with `APP_PORT=3000 docker compose up -d`.
+The entrypoint prepares writable directories, materializes `.env` from
+`.env.example`, generates an `APP_KEY` at startup when none is provided via
+environment, then hands off to Apache. **No migrations run — there is no
+database.** Contact requests appear in the container log
+(`docker compose logs storefront`).
 
 ## Deploy on Vercel (Container Service — FrankenPHP)
 
@@ -90,7 +88,7 @@ Vercel-specific files:
 | `Dockerfile.vercel` | Multi-stage FrankenPHP image (Vercel detects this filename) |
 | `vercel.json` | Declares the container service with `runtime: "container"` + catch-all rewrite |
 | `docker/caddy/Caddyfile.vercel` | Caddy config: listens on `:{$PORT:80}`, serves `/app/public`, routes through `index.php` |
-| `docker/entrypoint.frankenphp.sh` | Entrypoint: creates writable dirs in `/tmp`, runs migrations, execs FrankenPHP |
+| `docker/entrypoint.frankenphp.sh` | Entrypoint: creates writable dirs in `/tmp`, loads env, generates `APP_KEY`, execs FrankenPHP |
 
 ### Quick deploy
 
@@ -99,31 +97,29 @@ Vercel-specific files:
    `vercel.json` `services` declaration, builds the image, and serves it as
    a container function.
 3. No env vars required for a working demo — `APP_KEY` is auto-generated on
-   cold start if absent.
+   cold start if absent (pass `APP_KEY` in Vercel project settings to keep
+   keys stable across cold starts; a fresh key only resets cookie sessions,
+   which this site does not rely on).
 4. The `vercel.json` is **required** — without the `services` +
    `runtime: "container"` declaration, Vercel falls back to framework
    auto-detection and the Dockerfile is never used.
 
-### ⚠️ Critical caveat: data is ephemeral
+### ⚠️ Deployment notes
 
 Vercel's container filesystem is **ephemeral**. The entrypoint relocates
-the SQLite database file and Laravel's `storage/` tree to `/tmp/`, so
-the app runs correctly during a single container lifetime — but on every
-cold restart (redeploy, scale-to-zero after 5 min idle, container recycle),
-**all contact submissions are lost** and the database is recreated from
-migrations.
+Laravel's `storage/` tree to `/tmp/`, so the app runs correctly during a
+single container lifetime.
 
-This is acceptable for a marketing storefront demo. For production use,
-either:
+Since the storefront is **stateless** (ADR-013), this no longer costs any
+data: there is no database to lose. Contact requests go to the container's
+stderr log, which Vercel captures in its log drain — submissions survive in
+the logs even though the (nonexistent) filesystem does not. The former
+caveat about losing SQLite submissions on cold restart is obsolete.
 
-- Stay on Render (persistent SQLite volume via `docker-compose.yml`), or
-- Move contact persistence to Vercel Postgres / Turso / Neon and update
-  `config/database.php` + the `ContactRequest` model accordingly
-  (out of scope per ADR-001 / TASK-001 constraints).
-
-See `.agent/OBSERVATIONS/OBS-007-vercel-ephemeral-filesystem.md` and
-`.agent/DECISIONS/ADR-010-vercel-services-runtime-container.md` for the
-full rationale.
+The `/__debug` diagnostic endpoint that existed during the Vercel bring-up
+(RUN-005..RUN-011) was **removed** in TASK-011 — it was unauthenticated and
+leaked environment details. Deployment diagnosis now uses the Vercel build
+and runtime logs.
 
 ### Local test of the Vercel image
 
@@ -132,12 +128,6 @@ docker build -f Dockerfile.vercel -t storefront-vercel .
 docker run --rm -p 8080:8080 -e PORT=8080 storefront-vercel
 # storefront at http://localhost:8080
 ```
-
-### Debug endpoint
-
-Once deployed, visit `/__debug` on the Vercel URL to see DB path, file
-writability, storage writability, and PHP extensions as JSON (no DB
-access required). Useful for diagnosing deployment issues.
 
 ## Tests
 
