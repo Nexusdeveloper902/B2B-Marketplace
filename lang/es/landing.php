@@ -9,6 +9,10 @@ return [
         'pitch' => 'Presence Platform es infraestructura de eventos de presencia: una tarjeta NFC, un toque, un evento con marca de tiempo. La asistencia, el servicio de comidas y los incentivos de reciclaje leen del mismo flujo.',
         'cta_primary' => 'Véalo en acción',
         'cta_secondary' => 'Solicitar una demo',
+        'kicker' => 'infraestructura de eventos de presencia',
+        'chip_prompt' => 'evento',
+        'chip_copied' => '¡copiado!',
+        'chip_aria' => 'Registro de evento de ejemplo — clic para copiar',
     ],
 
     'ledger' => [
@@ -106,5 +110,33 @@ return [
         'body' => 'Recorra el producto en dos minutos, o díganos qué necesita contar y le mostraremos los eventos.',
         'cta_primary' => 'Véalo en acción',
         'cta_secondary' => 'Solicitar una demo',
+    ],
+
+    'demo' => [
+        'tag' => 'demo en vivo',
+        'tap_aria' => 'Demo interactiva: arrastre la tarjeta al lector',
+        'tap_hint' => 'arrastre la tarjeta',
+        'identify_aria' => 'Demo: el identificador de tarjeta y el del lector convergen en un evento',
+        'stamp_aria' => 'Demo: cada evento recibe una marca de tiempo inmutable',
+        'stamp_note' => 'inmutable',
+        'report_aria' => 'Demo: los totales diarios se acumulan desde el mismo flujo de eventos',
+        'report_arrivals' => 'attendance.in',
+        'report_meals' => 'meal.lunch',
+        'report_drops' => 'recycle.drop',
+        'grid_aria' => 'Demo: los registros de asistencia se propagan por la cuadrícula',
+        'grid_legend' => '22 / 24 presentes',
+        'meals_aria' => 'Demo: los totales de comidas se construyen día a día',
+        'meals_days' => ['L', 'M', 'X', 'J', 'V'],
+        'recycle_aria' => 'Demo: las entregas se cuentan y se acreditan',
+        'pipeline_title' => 'Un toque, tres reportes',
+    ],
+
+    'widget' => [
+        'title' => 'Lo que cuenta cada paquete',
+        'readers' => 'Lectores',
+        'cards' => 'Tarjetas',
+        'apps' => 'Aplicaciones',
+        'note' => 'Cifras de los paquetes publicados.',
+        'cta' => 'Ver precios completos',
     ],
 ];

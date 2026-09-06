@@ -9,6 +9,10 @@ return [
         'pitch' => 'Presence Platform is presence-event infrastructure: one NFC card, one tap, one timestamped event. Attendance, meal service, and recycling incentives all read from the same stream.',
         'cta_primary' => 'See it in action',
         'cta_secondary' => 'Request a demo',
+        'kicker' => 'presence-event infrastructure',
+        'chip_prompt' => 'event',
+        'chip_copied' => 'copied!',
+        'chip_aria' => 'Sample event record — click to copy',
     ],
 
     'ledger' => [
@@ -106,5 +110,33 @@ return [
         'body' => 'Walk through the product in two minutes, or tell us what you need to count and we will show you the events.',
         'cta_primary' => 'See it in action',
         'cta_secondary' => 'Request a demo',
+    ],
+
+    'demo' => [
+        'tag' => 'live demo',
+        'tap_aria' => 'Interactive demo: drag the card onto the reader',
+        'tap_hint' => 'drag the card',
+        'identify_aria' => 'Demo: card and reader identifiers converge into one event',
+        'stamp_aria' => 'Demo: each event is stamped with an immutable timestamp',
+        'stamp_note' => 'immutable',
+        'report_aria' => 'Demo: daily tallies count up from the same event stream',
+        'report_arrivals' => 'attendance.in',
+        'report_meals' => 'meal.lunch',
+        'report_drops' => 'recycle.drop',
+        'grid_aria' => 'Demo: check-ins ripple across the attendance grid',
+        'grid_legend' => '22 / 24 in',
+        'meals_aria' => 'Demo: meal tallies build themselves day by day',
+        'meals_days' => ['M', 'T', 'W', 'T', 'F'],
+        'recycle_aria' => 'Demo: drops are counted and credited',
+        'pipeline_title' => 'One tap, three reports',
+    ],
+
+    'widget' => [
+        'title' => 'What each package counts',
+        'readers' => 'Readers',
+        'cards' => 'Cards',
+        'apps' => 'Applications',
+        'note' => 'Counts from the published packages.',
+        'cta' => 'See full pricing',
     ],
 ];
