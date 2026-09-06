@@ -42,8 +42,10 @@ browser verification PASS.
   getcomposer.org was unreachable this run).
 
 ## Current Main Commit
-(after push — see run record) feature/TASK-012-visual-redesign merged to
-main.
+410f24c (local == origin/main, verified via GitHub API):
+- 638fde1 feat(design): TASK-012 visual redesign v2 'Signal'
+- b65efb3 merge: TASK-012 visual redesign
+- 410f24c chore(verify): audit scripts in-repo
 
 ## Current Main Status
 BUILDABLE — 17 tests / 120 assertions PASS; Pint PASS; 6 pages 200 on
