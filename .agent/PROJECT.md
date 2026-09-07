@@ -47,3 +47,37 @@ EN/ES toggle in the header switches locale (session-persisted). All copy lives i
   See `.agent/OBSERVATIONS/OBS-002-static-php-toolchain.md`.
 - Fonts are self-hosted (`public/fonts/*.woff2`, `public/css/fonts.css`) so the demo
   works offline with no CDN dependency.
+
+## TASK-013 additions (2026-09-07, RUN-2026-09-07-marketplace-015)
+
+- **Design system v3 "Datum" (ADR-015, supersedes ADR-014)**: the
+  storefront now shares the Core dashboards' light sage M3 palette,
+  Epilogue/Manrope/Space Grotesk/IBM Plex Mono type system, and 2/4/8px
+  radius ladder. Storefront-specific: data-green semantic family for
+  event labels/live states, dark inverse footer + closing band, gold
+  tertiary accents.
+- **CSS-only implementation**: app.css rewritten, fonts.css extended,
+  4 variable-font woff2 vendored from Core's vetted set. ZERO changes
+  to Blade views, controllers, routes, tests, or public/js/app.js —
+  content preservation is structural (86/86 audit; 17/120 tests
+  unchanged).
+- **The motion layer's runtime contract is now public API** (ADR-015):
+  tokens --data/--data-solid/--data-tint/--surface/--border-strong/
+  --accent-soft and classes .is-revealed/.is-new/.is-hit/.is-on must
+  survive every future stylesheet revision.
+- **Gap ledger shipped**: docs/FRONTEND.md + FRONTEND.es.md — 18
+  documented aspirational elements (cart/checkout, lead persistence,
+  email/CRM, testimonials, real feed, status, demo sandbox, scheduling,
+  analytics, sitemap, extra locales, legal pages) each with why it is
+  absent and what it would need. Honesty floor: no fake data, no dead
+  buttons.
+- **Durable traps**: sandbox kills backgrounded servers between tool
+  calls (server + all server-dependent checks in ONE invocation);
+  content_audit.py targets port 8099; `cd x && cmd &` backgrounds the
+  whole chain; B2B-Core's hermetic .tools/php serves this repo's
+  artisan/composer fine.
+- **Sibling-repo audit (owner distrust, same session)**: B2B-Core
+  d3a94c0 ci 3/3 (275/1-skip/4442, e2e 33/33); B2B-Firmware d657265
+  (owner bench commit) native 90/90 + 3 envs SUCCESS; ESP32-CAM-CV
+  5c62dc1 pytest 114/1-skip + build ±secrets SUCCESS. Every claim of
+  the latest commits reproduces.
