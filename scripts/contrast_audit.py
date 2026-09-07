@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """WCAG contrast audit for the redesigned token system (TASK-012).
-Checks every text/background pairing the new CSS introduces."""
+Checks every text/background pairing the new CSS introduces.
+
+TASK-013 (Datum, ADR-015): PAIRS re-pinned to the light sage M3 token
+set. Same audit contract, new palette."""
 
 def lin(c):
     c = c / 255
@@ -18,47 +21,53 @@ def ratio(fg, bg):
 
 # name: (foreground, background, context, required ratio)
 PAIRS = [
-    # body + headings on base grounds
-    ("grey-50 on grey-950 (h1/h2 headings)",       "#f3f1f3", "#121013", 3.0),
-    ("grey-100 on grey-950 (body)",                "#e6e3e8", "#121013", 4.5),
-    ("grey-200 on grey-950 (strong body)",         "#cec7d1", "#121013", 4.5),
-    ("grey-300 on grey-950 (muted small)",         "#b5acb9", "#121013", 4.5),
-    ("grey-400 on grey-950 (muted/meta)",          "#9c90a2", "#121013", 4.5),
-    ("grey-100 on grey-900 (body on raised)",      "#e6e3e8", "#1a171c", 4.5),
-    ("grey-200 on grey-900",                       "#cec7d1", "#1a171c", 4.5),
-    ("grey-300 on grey-900",                       "#b5acb9", "#1a171c", 4.5),
-    ("grey-100 on grey-800 (body on surface)",     "#e6e3e8", "#352e38", 4.5),
-    ("grey-300 on grey-800 (muted on surface)",    "#b5acb9", "#352e38", 4.5),
-    ("grey-400 on grey-800 (meta on surface)",     "#9c90a2", "#352e38", 4.5),
+    # body + headings on base grounds (Datum M3: #f6fbed ground)
+    ("on-surface on background (h1/h2 headings)",     "#181d15", "#f6fbed", 3.0),
+    ("on-background on background (body)",            "#181d15", "#f6fbed", 4.5),
+    ("on-surface-variant on background (muted)",      "#454743", "#f6fbed", 4.5),
+    ("outline-ink on background (meta/hints)",         "#666861", "#f6fbed", 4.5),
+    ("on-background on container-low (wash)",         "#181d15", "#f1f5e7", 4.5),
+    ("on-surface-variant on container-low",           "#454743", "#f1f5e7", 4.5),
+    ("on-background on white (cards)",                "#181d15", "#ffffff", 4.5),
+    ("on-surface-variant on white (card body)",       "#454743", "#ffffff", 4.5),
+    ("outline-ink on white (meta only)",              "#666861", "#ffffff", 4.5),
+    ("on-surface-variant on container-high (demos)",  "#454743", "#e5eadc", 4.5),
     # accents as text
-    ("scarlet-400 on grey-950 (small accent)",     "#f53d56", "#121013", 4.5),
-    ("scarlet-500 on grey-950 (LARGE accent only)","#f20d2b", "#121013", 3.0),
-    ("scarlet-300 on grey-800 (accent on surface)","#f76e80", "#352e38", 4.5),
-    ("scarlet-400 on grey-900",                    "#f53d56", "#1a171c", 4.5),
-    ("teal-400 on grey-950",                       "#80b3a7", "#121013", 4.5),
-    ("teal-500 on grey-950",                       "#609f92", "#121013", 4.5),
-    ("teal-400 on grey-800",                       "#80b3a7", "#352e38", 4.5),
-    ("teal-500 on grey-900",                       "#609f92", "#1a171c", 4.5),
-    ("orange-400 on grey-950 (badge/hover)",       "#f59f3d", "#121013", 4.5),
-    ("orange-500 on grey-950",                     "#f2870d", "#121013", 4.5),
-    ("orange-400 on grey-800",                     "#f59f3d", "#352e38", 4.5),
+    ("data-strong on background (links/labels)",      "#2f5238", "#f6fbed", 4.5),
+    ("data-strong on white (event labels)",           "#2f5238", "#ffffff", 4.5),
+    ("data on white (mono values)",                   "#416e4a", "#ffffff", 4.5),
+    ("on-tertiary-fixed-variant on bg (gold ink)",    "#594400", "#f6fbed", 4.5),
+    ("on-tertiary-fixed-variant on white",            "#594400", "#ffffff", 4.5),
+    ("on-secondary-container on secondary-container", "#636562", "#e2e3df", 4.5),
     # buttons
-    ("white on scarlet-600 (primary btn)",         "#ffffff", "#c20a23", 4.5),
-    ("white on scarlet-700 (primary hover)",       "#ffffff", "#91081a", 4.5),
-    ("grey-100 on transparent+grey-950 (quiet btn)","#e6e3e8", "#121013", 4.5),
-    # alert / success
-    ("scarlet-400 on scarlet-950 (form error)",    "#f53d56", "#220206", 4.5),
-    ("scarlet-300 on scarlet-950 (err small)",     "#f76e80", "#220206", 4.5),
-    ("teal-400 on teal-950 (success note)",        "#80b3a7", "#0d1614", 4.5),
-    # code chip / selection
-    ("teal-300 on grey-900 (code chip text)",      "#9fc6bd", "#1a171c", 4.5),
-    ("white on scarlet-600 (selection)",           "#ffffff", "#c20a23", 4.5),
-    ("grey-200 on teal-900 (chip on teal tint)",   "#cec7d1", "#13201d", 4.5),
-    # links
-    ("scarlet-400 links on grey-950",              "#f53d56", "#121013", 4.5),
-    ("teal-400 links on grey-950",                 "#80b3a7", "#121013", 4.5),
-    ("scarlet-300 links on grey-900",              "#f76e80", "#1a171c", 4.5),
-    ("orange-400 on grey-900 (kicker alt)",        "#f59f3d", "#1a171c", 4.5),
+    ("white on primary (primary btn)",                "#ffffff", "#0e0f0e", 4.5),
+    ("white on primary-container (primary hover)",    "#ffffff", "#242423", 4.5),
+    ("on-surface on background (quiet btn)",          "#181d15", "#f6fbed", 4.5),
+    ("on-tertiary-fixed on tertiary-fixed (gold btn)",  "#241a00", "#ffdf93", 4.5),
+    ("on-tertiary-fixed on tertiary-fixed-dim (hover)","#241a00", "#ebc254", 4.5),
+    # alert / error
+    ("on-error-container on error-container (errors)", "#93000a", "#ffdad6", 4.5),
+    ("error on white (invalid border, non-text)",     "#ba1a1a", "#ffffff", 3.0),
+    # code chip / snippet (dark on light)
+    ("on-primary-fixed on primary-fixed (snippet)",   "#1b1c1b", "#e5e2e0", 4.5),
+    ("on-surface on primary-fixed (snippet b)",       "#181d15", "#e5e2e0", 4.5),
+    ("data-strong on primary-fixed (snippet .s)",     "#2f5238", "#e5e2e0", 4.5),
+    # sample-event (dark panel, product page)
+    ("tertiary-fixed on primary-container (title)",   "#ffdf93", "#242423", 4.5),
+    ("#dcdcd9 on primary-container (code body)",      "#dcdcd9", "#242423", 4.5),
+    # selection
+    ("on-tertiary-fixed on tertiary-fixed (sel)",     "#241a00", "#ffdf93", 4.5),
+    # inverse surfaces (closing band + footer + featured tier)
+    ("inverse-on-surface on inverse-surface (h2)",    "#eef3e5", "#2d3229", 3.0),
+    ("inverse-on-surface on inverse-surface (body)",  "#eef3e5", "#2d3229", 4.5),
+    ("#b8bdb0 on inverse-surface (soft body .72)",    "#b8bdb0", "#2d3229", 4.5),
+    ("#acb1a5 on inverse-surface (footer-note .66)",  "#acb1a5", "#2d3229", 4.5),
+    ("#979c90 on inverse-surface (footer-legal .55)", "#979c90", "#2d3229", 4.5),
+    ("#d3d8cb on inverse-surface (links .86)",        "#d3d8cb", "#2d3229", 4.5),
+    ("tertiary-fixed on inverse-surface (gold em)",   "#ffdf93", "#2d3229", 4.5),
+    ("tertiary-fixed on primary (featured tier)",     "#ffdf93", "#0e0f0e", 4.5),
+    ("#d3d8cb on primary (tier feats .88)",           "#d3d8cb", "#0e0f0e", 4.5),
+    ("tertiary-fixed on primary (ledger card id)",    "#ffdf93", "#0e0f0e", 4.5),
 ]
 
 fails = []
