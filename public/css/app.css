@@ -249,6 +249,7 @@ code, pre { font-family: var(--font-mono); }
    ========================================================================== */
 .btn {
     display: inline-flex;
+    box-sizing: border-box;
     align-items: center;
     justify-content: center;
     gap: 8px;
@@ -1476,6 +1477,8 @@ code, pre { font-family: var(--font-mono); }
    ========================================================================== */
 .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .tier {
+    display: flex;
+    flex-direction: column;
     padding: 26px 26px 24px;
     background: var(--surface-container-lowest);
     border: 1px solid var(--border);
@@ -1505,6 +1508,11 @@ code, pre { font-family: var(--font-mono); }
 }
 .tier-featured .tier-head { border-bottom-color: var(--tertiary-fixed-dim); }
 
+.tier-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
 .tier-price {
     font: 600 var(--fs-headline-lg)/1 var(--font-display);
     letter-spacing: -0.02em;
@@ -1540,7 +1548,7 @@ code, pre { font-family: var(--font-mono); }
 }
 .tier-featured .tier-footnote { color: rgba(238, 243, 229, 0.62); }
 
-.tier-cta { width: 100%; }
+.tier-cta { width: 100%; margin-top: auto; }
 .tier-featured .tier-cta {
     background: var(--tertiary-fixed);
     color: var(--on-tertiary-fixed);

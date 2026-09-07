@@ -10,7 +10,7 @@
             </span>
             <h1>{{ __('contact.thankyou.title') }}</h1>
             <p class="thanks-body">
-                {{ __('contact.thankyou.body', ['email' => '<strong>' . e(session('contact_email', __('contact.form.email'))) . '</strong>']) }}
+                {!! __('contact.thankyou.body', ['email' => '<strong>' . e(session('contact_email', __('contact.form.email'))) . '</strong>']) !!}
             </p>
             <div class="thanks-actions">
                 <a class="btn btn-quiet" href="{{ route('contact.show') }}">{{ __('contact.thankyou.another') }}</a>
