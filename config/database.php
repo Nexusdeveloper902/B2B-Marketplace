@@ -24,9 +24,9 @@ $sqliteDefaultDir = dirname($sqliteDefaultPath);
 // writable, fall back to /tmp/storefront/database.sqlite (ephemeral but
 // writable on Vercel). We check both is_dir and is_writable because
 // is_writable returns true for root even on read-only filesystems.
-if (!is_dir($sqliteDefaultDir)) {
+if (! is_dir($sqliteDefaultDir)) {
     $sqliteDefaultPath = '/tmp/storefront/database.sqlite';
-    if (!is_dir(dirname($sqliteDefaultPath))) {
+    if (! is_dir(dirname($sqliteDefaultPath))) {
         @mkdir(dirname($sqliteDefaultPath), 0777, true);
     }
 }

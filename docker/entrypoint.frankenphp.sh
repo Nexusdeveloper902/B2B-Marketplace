@@ -189,6 +189,6 @@ fi
 #    to :{$PORT:80} per the Caddyfile. No port patching needed!
 # ---------------------------------------------------------------------------
 echo "=== FrankenPHP entrypoint DONE — starting FrankenPHP ===" >&2
-echo "APP_KEY set: $([ -n \"${APP_KEY:-}\" ] && echo yes || echo no)" >&2
+echo "APP_KEY set: $([ -n "${APP_KEY:-}" ] && echo yes || echo no)" >&2
 
 exec "$@"

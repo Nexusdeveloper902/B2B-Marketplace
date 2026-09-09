@@ -112,7 +112,7 @@ function heroEntrance() {
     /* Copy the sample event on click (install-chip behaviour). */
     const chip = $('.hero-chip');
     if (chip) {
-        chip.addEventListener('click', async () => {
+        const copyChip = async () => {
             try {
                 await navigator.clipboard.writeText(chip.dataset.copy || '');
                 const prompt = $('.chip-prompt', chip);
@@ -120,6 +120,15 @@ function heroEntrance() {
                 prompt.textContent = prompt.dataset.copied || 'copied';
                 setTimeout(() => { prompt.textContent = original; }, 1200);
             } catch (e) { /* clipboard unavailable — no-op */ }
+        };
+        chip.addEventListener('click', copyChip);
+        // role="button" must come with button semantics: Enter and Space
+        // activate it (WCAG 2.1.1 — a div does not synthesize clicks).
+        chip.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                e.preventDefault();
+                copyChip();
+            }
         });
     }
 }

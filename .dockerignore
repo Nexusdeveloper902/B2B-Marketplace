@@ -24,6 +24,15 @@ vercel.json
 # Host build artifacts — regenerated inside stage 1.
 vendor/
 
+# Secrets and host-only artifacts must never bake into the image: the
+# entrypoints materialize .env from .env.example at startup, and a local
+# .env riding `COPY . .` would silently BECOME that runtime config
+# (dev APP_KEY, stale values) in production.
+.env
+.env.*
+!.env.example
+package-lock.json
+
 # Runtime state must not leak into the image.
 database/database.sqlite
 storage/framework/sessions/*

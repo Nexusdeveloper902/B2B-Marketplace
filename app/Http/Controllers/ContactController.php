@@ -33,7 +33,16 @@ class ContactController extends Controller
             'message' => ['required', 'string', 'min:10', 'max:2000'],
         ], __('forms.validation'));
 
-        Log::info('contact.request', $validated);
+        // The log IS the persistence (ADR-013): a failed write would
+        // otherwise surface as a generic 500 and lose both the lead and
+        // the thank-you UX. Surface the failure to the error channel and
+        // still complete the flow — the operators' log drain will show
+        // the reported exception.
+        try {
+            Log::info('contact.request', $validated);
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return redirect()
             ->route('contact.thankYou')

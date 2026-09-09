@@ -662,6 +662,7 @@ code, pre { font-family: var(--font-mono); }
 }
 
 /* the event table */
+.ledger-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .ledger-table {
     width: 100%;
     border-collapse: collapse;
@@ -761,6 +762,10 @@ code, pre { font-family: var(--font-mono); }
     grid-template-columns: repeat(12, 1fr);
     gap: 14px;
 }
+/* 1fr = minmax(auto, 1fr): without min-width:0 a card's intrinsic
+   min-content (nowrap mono snippets, the demo ledger) widens the track
+   past the viewport and the page scrolls sideways on phones. */
+.bento > * { min-width: 0; }
 
 .card {
     grid-column: span 4;
@@ -1140,6 +1145,10 @@ code, pre { font-family: var(--font-mono); }
     max-width: 640px;
     margin-inline: auto;
     width: 100%;
+    /* This app styles boxes per-component (no universal reset): without
+       border-box, width:100% + padding pushed the card 38px past the
+       viewport on phones. */
+    box-sizing: border-box;
     background: var(--surface-container-lowest);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -1900,9 +1909,16 @@ code, pre { font-family: var(--font-mono); }
     .mobilenav { display: block; }
     .topbar-in { gap: 16px; }
     .topbar-tools { margin-left: auto; }
+    /* The demo CTA already lives in the hamburger menu; keeping the
+       topbar copy visible here used to push the menu button past the
+       viewport edge (and the open menu with it). */
+    .topbar-tools .btn-topbar { display: none; }
 }
 
 @media (max-width: 620px) {
+    /* Icon-only hamburger: the "Menú" label no longer fits next to the
+       wordmark + language switch on phones. */
+    .mobilenav-label { display: none; }
     .hero-copy h1 { font-size: var(--fs-headline-lg); line-height: var(--lh-headline-lg); }
     .flow, .apps { grid-template-columns: 1fr; }
     .audience-row { grid-template-columns: 1fr; gap: 14px; }

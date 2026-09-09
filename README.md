@@ -22,6 +22,8 @@ hardware. See `.agent/PROJECT.md` for the full project context.
 | `/pricing` | Packages — Starter / Campus / Enterprise |
 | `/enterprise` | Enterprise — custom labeled-event tracking |
 | `/contact` | Request a demo — validated form, submission logged (no DB) |
+| `/contact/thank-you` | Post-submission confirmation (flashed email) |
+| `/lang/{en\|es}` | The EN/ES header toggle — stores the locale in the session and redirects back to the same app (cross-site referers are ignored) |
 
 ## Quickstart
 
@@ -142,14 +144,15 @@ No local setup needed — `phpunit.xml` carries a disposable test-only
 
 ## Design
 
-The visual direction is **"The Event Ledger"**: the storefront's grammar is
-built from the product's own artifact — the timestamped, labeled event record.
-Porcelain paper ground, deep institutional green, hairline-ruled sections
-instead of floating cards, Space Grotesk / IBM Plex Sans / IBM Plex Mono
-(self-hosted in `public/fonts`, so the demo works offline), and a single
-orchestrated motion moment in the hero (card → go-light → row written).
-Do not revert it to default template aesthetics — see
-`.agent/DECISIONS/ADR-002-visual-design-direction.md`.
+The visual direction is **"Datum" v3** (ADR-015): a light sage-ground
+Material-3 tonal family (`#f6fbed` ground, near-black primary, gold
+tertiary-fixed accents), Epilogue display type over Manrope body text,
+Space Grotesk labels and IBM Plex Mono for data (all self-hosted in
+`public/fonts`, so the demo works offline), hairline-ruled sections, and a
+single orchestrated motion moment in the hero (card → go-light → row
+written) gated behind `prefers-reduced-motion`. The full component
+reference lives in `docs/FRONTEND.md` / `docs/FRONTEND.es.md`. Do not
+revert it to default template aesthetics.
 
 ## Repository layout for agents
 

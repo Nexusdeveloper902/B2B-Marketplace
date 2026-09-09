@@ -26,3 +26,7 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Mimosa security-scan tool state (2026-09-09 audits)
+/.mimosa/
+**/.mimosa/

@@ -46,7 +46,11 @@
                     </div>
                 </div>
 
-                <table class="ledger-table">
+                {{-- Scroll container: the mono timestamps are nowrap, so on
+                     narrow phones the table scrolls inside the card instead
+                     of widening the whole page. --}}
+                <div class="ledger-wrap">
+                    <table class="ledger-table">
                     <thead>
                         <tr>
                             @foreach (__('landing.ledger.columns') as $column)
@@ -64,7 +68,8 @@
                         <tr><td>15:41:09</td><td>0558</td><td>ECO-PT</td><td>recycle.drop</td></tr>
                         <tr><td>16:22:41</td><td>0132</td><td>GATE-B</td><td>attendance.out</td></tr>
                     </tbody>
-                </table>
+                    </table>
+                </div>
             </figure>
         </div>
     </section>

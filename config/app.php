@@ -96,7 +96,6 @@ return [
 
     'supported_locales' => array_filter(explode(',', (string) env('APP_SUPPORTED_LOCALES', 'en,es'))),
 
-
     /*
     |--------------------------------------------------------------------------
     | Encryption Key

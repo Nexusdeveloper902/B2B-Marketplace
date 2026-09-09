@@ -2,6 +2,7 @@
 
 return [
     'meta_title' => 'Request a demo',
+    'meta_description' => 'Request a demo of the Presence Platform: attendance, PAE meal tracking and recycling incentives from one NFC card tap.',
 
     'hero' => [
         'title' => 'Request a demo.',
