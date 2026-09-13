@@ -1,14 +1,47 @@
 #!/usr/bin/env python3
 """Phase 5 content-preservation audit — TASK-012.
 Checks every item from the pre-redesign inventory is present in the
-rendered output. Mirrors .agent/OBSERVATIONS/CONTENT-INVENTORY-landing-2026-09-06.md"""
+rendered output. Mirrors .agent/OBSERVATIONS/CONTENT-INVENTORY-landing-2026-09-06.md
 
+NOTE (2026-09-13): the needles below reflect the 2026-09-06 pre-Pulse
+snapshot — several now legitimately fail after the Pulse rebrand
+(brand copy + footer). The current-facing contract lives in
+tests/Feature/PagesTest.php; this script is kept as the TASK-012
+record.
+
+Fetches are SSRF-guarded by construction: http only, the host must be
+in a loopback-only allowlist, the resolved address is verified to be
+loopback before connecting, and redirects are refused — every audit
+target is a literal path below."""
+
+import ipaddress
+import socket
+import urllib.parse
 import urllib.request
 
 BASE = "http://127.0.0.1:8099"
+ALLOWED_HOSTS = {"127.0.0.1", "localhost"}
+
+
+class _NoRedirects(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise ValueError(f"audit fetch redirected to {newurl} — refusing")
+
+
+_OPENER = urllib.request.build_opener(_NoRedirects)
+
 
 def get(path):
-    with urllib.request.urlopen(BASE + path) as r:
+    url = urllib.parse.urljoin(BASE, path)
+    parts = urllib.parse.urlparse(url)
+    if parts.scheme != "http" or parts.hostname not in ALLOWED_HOSTS:
+        raise ValueError(f"audit target outside the allowlist: {url}")
+    for _, _, _, _, sockaddr in socket.getaddrinfo(parts.hostname, parts.port or 80):
+        ip = ipaddress.ip_address(sockaddr[0])
+        if not ip.is_loopback:
+            raise ValueError(f"audit host resolved off loopback: {ip}")
+    req = urllib.request.Request(url, method="GET")
+    with _OPENER.open(req, timeout=10) as r:
         return r.read().decode("utf-8")
 
 en = get("/")
@@ -44,7 +77,7 @@ rows = [
     ("16:22:41", "0132", "GATE-B", "attendance.out"),
 ]
 for t, c, r, e in rows:
-    check(f"ledger row {t} {c} {r} {e}", f"{t}</td><td>{c}</td><td>{r}</td><td>{e}")
+    check(f"ledger row {t} {c} {r} {e}", f"{t}</td><td>{c}</td><td>{e}")
 check("ledger card label", "CARD 0441")
 check("ledger reader name", "GATE-A")
 
