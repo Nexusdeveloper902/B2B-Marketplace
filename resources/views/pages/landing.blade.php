@@ -74,6 +74,28 @@
         </div>
     </section>
 
+    {{-- ============ Trust / stats marquee ============ --}}
+    <section class="trust-strip" aria-label="{{ __('landing.trust.kicker') }}">
+        <div class="shell trust-in">
+            <p class="trust-meta">{{ __('landing.trust.kicker') }}</p>
+            <div class="trust-stats">
+                @foreach (__('landing.trust.items') as $stat)
+                    <div class="trust-stat" data-reveal>
+                        <b data-count="{{ $stat['value'] }}">{{ $stat['value'] }}</b>
+                        <span>{{ $stat['label'] }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+        <div class="shell marquee" aria-hidden="true" style="margin-top:14px;">
+            <div class="marquee-track">
+                @foreach (array_merge(__('landing.trust.logos'), __('landing.trust.logos')) as $logo)
+                    <span class="marquee-item"><i></i>{{ $logo }}</span>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
     {{-- ============ Problem ============ --}}
     <section class="section">
         <div class="shell section-grid">
@@ -380,4 +402,94 @@
             </div>
         </div>
     </section>
+@endsection
+
+@section('scripts')
+<script type="module">
+    // Astonishing polish — animated counters + hero parallax.
+    // Graceful no-op if anime isn't on the page or motion is reduced.
+    (async () => {
+        if (!document.documentElement.classList.contains('js-motion')) return;
+        const animeMod = await import('{{ asset('js/vendor/anime.esm.min.js') }}').catch(() => null);
+        if (!animeMod) return;
+        const { animate, onScroll, stagger } = animeMod;
+
+        /* Trust stat count-up when the strip enters view. */
+        const strip = document.querySelector('.trust-strip');
+        if (strip) {
+            const stats = strip.querySelectorAll('.trust-stat b');
+            onScroll({
+                target: strip,
+                enter: '85% center',
+                repeat: false,
+                onEnter: () => {
+                    stats.forEach((el, idx) => {
+                        const raw = el.dataset.count || el.textContent || '0';
+                        const numeric = parseFloat(raw.replace(/[^\d.]/g, '')) || 0;
+                        const suffix = raw.replace(/[\d.,<>\s]/g, '');
+                        const prefix = raw.startsWith('<') ? '<' : '';
+                        const counter = { v: 0 };
+                        el.style.opacity = 0;
+                        animate(el, { opacity: [0, 1], duration: 300, delay: idx * 80, ease: 'out(3)' });
+                        animate(counter, {
+                            v: numeric,
+                            duration: 1100,
+                            delay: idx * 80,
+                            ease: 'out(3)',
+                            onUpdate: () => {
+                                const v = Number.isInteger(numeric)
+                                    ? Math.round(counter.v).toLocaleString('en-US')
+                                    : counter.v.toFixed(1);
+                                el.textContent = prefix + v + suffix;
+                            },
+                        });
+                    });
+                },
+            });
+        }
+
+        /* Gentle hero parallax: the ledger tilts slightly toward the pointer. */
+        const hero = document.querySelector('.hero');
+        const ledger = document.querySelector('.ledger');
+        if (hero && ledger && window.matchMedia('(min-width: 941px)').matches) {
+            let raf = 0;
+            hero.addEventListener('mousemove', (e) => {
+                if (raf) cancelAnimationFrame(raf);
+                raf = requestAnimationFrame(() => {
+                    const r = hero.getBoundingClientRect();
+                    const x = (e.clientX - r.left) / r.width - 0.5;
+                    const y = (e.clientY - r.top) / r.height - 0.5;
+                    ledger.style.transform =
+                        `perspective(1400px) rotateY(${-3 + x * 4}deg) rotateX(${2 - y * 3}deg) translateY(${y * -6}px)`;
+                });
+            });
+            hero.addEventListener('mouseleave', () => {
+                ledger.style.transform = '';
+            });
+        }
+
+        /* Stagger-in the trust strip children. */
+        const meta = strip?.querySelector('.trust-meta');
+        const statNodes = strip ? Array.from(strip.querySelectorAll('.trust-stat')) : [];
+        const all = [meta, ...statNodes].filter(Boolean);
+        all.forEach((el, i) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(12px)';
+            onScroll({
+                target: el,
+                enter: '90% center',
+                repeat: false,
+                onEnter: () => {
+                    animate(el, {
+                        opacity: [0, 1],
+                        translateY: [12, 0],
+                        duration: 600,
+                        delay: i * 80,
+                        ease: 'out(3)',
+                    });
+                },
+            });
+        });
+    })();
+</script>
 @endsection

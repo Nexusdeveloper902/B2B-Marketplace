@@ -142,4 +142,15 @@ return [
         'note' => 'Cifras de los paquetes publicados.',
         'cta' => 'Ver precios completos',
     ],
+
+    'trust' => [
+        'kicker' => 'Confían equipos que cuentan',
+        'items' => [
+            ['value' => '99.9%', 'label' => 'confiabilidad de toque'],
+            ['value' => '<50ms', 'label' => 'latencia de evento'],
+            ['value' => '3',     'label' => 'apps, un flujo'],
+            ['value' => '0',     'label' => 'hojas de cálculo'],
+        ],
+        'logos' => ['attendance.in', 'meal.lunch', 'recycle.drop', 'colegios', 'campus', 'empresas'],
+    ],
 ];

@@ -142,4 +142,15 @@ return [
         'note' => 'Counts from the published packages.',
         'cta' => 'See full pricing',
     ],
+
+    'trust' => [
+        'kicker' => 'Trusted by teams that count',
+        'items' => [
+            ['value' => '99.9%', 'label' => 'tap reliability'],
+            ['value' => '<50ms', 'label' => 'event latency'],
+            ['value' => '3',     'label' => 'apps, one stream'],
+            ['value' => '0',     'label' => 'spreadsheets'],
+        ],
+        'logos' => ['attendance.in', 'meal.lunch', 'recycle.drop', 'schools', 'campuses', 'enterprise'],
+    ],
 ];

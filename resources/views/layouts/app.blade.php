@@ -17,6 +17,9 @@
     <meta name="twitter:card" content="summary_large_image">
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    @if (request()->routeIs('landing'))
+        <link rel="stylesheet" href="{{ asset('css/astonish.css') }}">
+    @endif
     {{-- Motion gate: flags motion availability before first paint so reveal
          states never flash. Never adds the flag under reduced-motion. --}}
     <script>
@@ -38,5 +41,7 @@
     </main>
 
     @include('partials.footer')
+
+    @yield('scripts')
 </body>
 </html>

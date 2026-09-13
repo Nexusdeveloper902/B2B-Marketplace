@@ -1,0 +1,542 @@
+/* ==========================================================================
+   Pulse — Astonishing Landing Overlay
+   Additive layer on top of Datum v3 (app.css). Keeps every token, class,
+   and state contract from the base stylesheet — only AMPLIFIES presence.
+   ========================================================================== */
+
+/* ---------- New tokens (aurora, glow, glass) ---------- */
+:root {
+    --aurora-1: rgba(235, 194, 84, 0.55);   /* gold */
+    --aurora-2: rgba(107, 148, 117, 0.45);  /* data-green lifted */
+    --aurora-3: rgba(65, 110, 74, 0.35);
+    --glow-gold:  rgba(235, 194, 84, 0.28);
+    --glow-green: rgba(65, 110, 74, 0.22);
+    --glass-bg:   rgba(255, 255, 255, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.7);
+    --ring: rgba(24, 29, 21, 0.06);
+}
+
+/* ==========================================================================
+   Topbar polish — softer glass, thicker blur
+   ========================================================================== */
+.topbar {
+    background: rgba(246, 251, 237, 0.72);
+    -webkit-backdrop-filter: saturate(1.4) blur(18px);
+    backdrop-filter: saturate(1.4) blur(18px);
+}
+
+/* ==========================================================================
+   Hero — aurora backdrop + orbs + refined copy
+   ========================================================================== */
+.hero {
+    position: relative;
+    isolation: isolate;
+}
+
+/* Radial aurora wash behind the hero content. */
+.hero::before {
+    content: '';
+    position: absolute;
+    inset: -10% -10% auto -10%;
+    height: 120%;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(42% 38% at 18% 28%, var(--aurora-1) 0%, transparent 70%),
+        radial-gradient(38% 34% at 82% 20%, var(--aurora-2) 0%, transparent 72%),
+        radial-gradient(46% 40% at 60% 80%, var(--aurora-3) 0%, transparent 70%);
+    filter: blur(40px);
+    opacity: 0.95;
+    animation: aurora-drift 18s ease-in-out infinite alternate;
+}
+
+/* Faint grid gets a touch more depth in the hero band. */
+.hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse at 50% 120%, rgba(24, 29, 21, 0.06) 0%, transparent 55%);
+}
+
+@keyframes aurora-drift {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    50%  { transform: translate3d(-2%, 1.5%, 0) scale(1.04); }
+    100% { transform: translate3d(2%, -1%, 0) scale(1.02); }
+}
+
+/* Floating decorative orbs (CSS-only, no extra markup). */
+.hero-grid::before,
+.hero-grid::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: -1;
+    filter: blur(60px);
+    opacity: 0.55;
+}
+.hero-grid { position: relative; }
+.hero-grid::before {
+    width: 320px; height: 320px;
+    top: -60px; left: -80px;
+    background: radial-gradient(circle, var(--glow-gold) 0%, transparent 65%);
+    animation: float-y 12s ease-in-out infinite alternate;
+}
+.hero-grid::after {
+    width: 360px; height: 360px;
+    bottom: -80px; right: -60px;
+    background: radial-gradient(circle, var(--glow-green) 0%, transparent 65%);
+    animation: float-y 14s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes float-y {
+    from { transform: translateY(-10px); }
+    to   { transform: translateY(18px); }
+}
+
+/* Hero typography lift */
+.hero-kicker {
+    display: inline-flex;
+    padding: 6px 12px 6px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 1px 2px rgba(24, 29, 21, 0.04);
+    margin-bottom: 28px;
+}
+.hero-kicker i {
+    box-shadow: 0 0 0 4px rgba(235, 194, 84, 0.18);
+    animation: kicker-pulse 2s ease-in-out infinite;
+}
+@keyframes kicker-pulse {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(235, 194, 84, 0.18); }
+    50%      { box-shadow: 0 0 0 7px rgba(235, 194, 84, 0.06); }
+}
+
+.hero-copy h1 {
+    background: linear-gradient(180deg, var(--text) 0%, var(--text) 62%, #2c3328 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: var(--ls-display);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.25);
+}
+
+.hero-pitch {
+    font-size: calc(var(--fs-body-lg) + 1px);
+    line-height: 1.55;
+}
+
+/* CTA buttons get a subtle glow on hover */
+.hero-actions .btn-primary {
+    position: relative;
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.12) inset,
+        0 8px 24px rgba(14, 15, 14, 0.18);
+}
+.hero-actions .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: calc(var(--radius-sm) + 2px);
+    background: linear-gradient(120deg, rgba(235,194,84,0.5), rgba(65,110,74,0.35), rgba(235,194,84,0.5));
+    opacity: 0;
+    z-index: -1;
+    filter: blur(10px);
+    transition: opacity var(--dur) ease;
+}
+.hero-actions .btn-primary:hover::after { opacity: 0.9; }
+
+/* Sample-event chip — glassy lift */
+.hero-chip {
+    background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(229, 226, 224, 0.65));
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Ledger: elevated "device" look with gradient border */
+.ledger {
+    position: relative;
+    background: linear-gradient(180deg, #ffffff 0%, var(--surface-container-lowest) 100%);
+    box-shadow:
+        var(--shadow-xl),
+        0 0 0 1px rgba(255,255,255,0.6) inset,
+        0 30px 60px -20px rgba(24, 29, 21, 0.18);
+    transform: perspective(1400px) rotateY(-3deg) rotateX(2deg);
+    transform-style: preserve-3d;
+    transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ledger:hover {
+    transform: perspective(1400px) rotateY(0deg) rotateX(0deg);
+}
+.ledger::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: calc(var(--radius) + 1px);
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(235,194,84,0.55), rgba(65,110,74,0.35), rgba(255,255,255,0) 60%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ==========================================================================
+   Trust / stats marquee strip (inserted via .trust-strip)
+   ========================================================================== */
+.trust-strip {
+    position: relative;
+    padding: 18px 0;
+    border-top: 1px solid var(--border-soft);
+    border-bottom: 1px solid var(--border-soft);
+    background: linear-gradient(180deg,
+        rgba(255,255,255,0.4),
+        rgba(255,255,255,0.15));
+    overflow: hidden;
+}
+.trust-in {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(24px, 4vw, 56px);
+    flex-wrap: wrap;
+}
+.trust-meta {
+    font: var(--fw-label-md) var(--fs-label-md)/1 var(--font-label);
+    letter-spacing: var(--ls-label-md);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+.trust-stats {
+    display: flex;
+    gap: clamp(22px, 4vw, 56px);
+    flex-wrap: wrap;
+}
+.trust-stat {
+    display: grid;
+    gap: 2px;
+}
+.trust-stat b {
+    font: 700 clamp(26px, 3.4vw, 36px)/1 var(--font-display);
+    letter-spacing: -0.025em;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(180deg, var(--data-strong), var(--primary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.trust-stat span {
+    font: 500 var(--fs-body-sm)/1.2 var(--font-body);
+    color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Sections — gentler separators, headings with accent
+   ========================================================================== */
+.section h2 {
+    position: relative;
+    display: inline-block;
+}
+.section-head-wide h2::after,
+.section-head h2::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 48px;
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--tertiary-fixed-dim), var(--data));
+}
+
+/* Bento cards: gradient halo on hover */
+.card {
+    position: relative;
+    background: linear-gradient(180deg, #ffffff 0%, var(--surface-container-lowest) 100%);
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 320ms ease,
+                border-color 320ms ease;
+    overflow: hidden;
+}
+.card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: calc(var(--radius) + 1px);
+    padding: 1px;
+    background: linear-gradient(135deg,
+        rgba(235,194,84,0.0) 0%,
+        rgba(235,194,84,0.45) 35%,
+        rgba(65,110,74,0.40) 65%,
+        rgba(235,194,84,0.0) 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 400ms ease;
+    pointer-events: none;
+}
+.card:hover::before { opacity: 1; }
+.card:hover {
+    box-shadow:
+        0 14px 40px -12px rgba(24, 29, 21, 0.18),
+        0 0 40px -10px var(--glow-gold);
+    transform: translateY(-4px);
+}
+
+/* Corner accent glyph on live demo cards */
+.card-tag {
+    position: relative;
+    background: linear-gradient(180deg, var(--data), var(--data-solid));
+    color: #ffffff;
+    padding: 5px 10px;
+    box-shadow: 0 4px 10px -4px rgba(65, 110, 74, 0.45);
+}
+.card-tag::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ffffff;
+    margin-right: 6px;
+    vertical-align: middle;
+    animation: ledger-pulse 1.6s ease-in-out infinite;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.22);
+}
+
+/* Mono snippet strip */
+.card-snippet {
+    background: linear-gradient(180deg,
+        rgba(229, 226, 224, 0.75),
+        rgba(229, 226, 224, 0.95));
+    border-color: rgba(255,255,255,0.6);
+}
+
+/* Card demos get a richer surface */
+.card-demo {
+    background:
+        linear-gradient(180deg,
+            var(--surface-container-high) 0%,
+            var(--surface-container) 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.55);
+}
+
+/* ==========================================================================
+   Problem section — callout cost card lift
+   ========================================================================== */
+.costs {
+    position: relative;
+    background: linear-gradient(180deg, #ffffff 0%, var(--surface-container-lowest) 100%);
+    box-shadow: var(--shadow-sm);
+    border-left-width: 4px;
+}
+.costs::after {
+    content: '';
+    position: absolute;
+    right: -30px;
+    top: -30px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(186, 26, 26, 0.08), transparent 65%);
+    pointer-events: none;
+    border-radius: 50%;
+}
+
+/* ==========================================================================
+   Widget — soft glow when active
+   ========================================================================== */
+.widget {
+    background: linear-gradient(180deg, #ffffff 0%, var(--surface-container-lowest) 100%);
+    position: relative;
+    overflow: hidden;
+}
+.widget::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, var(--glow-gold), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+.widget > * { position: relative; z-index: 1; }
+
+/* ==========================================================================
+   Audience rows — reveal accent on hover
+   ========================================================================== */
+.audience-row {
+    transition: background 320ms ease, padding 320ms ease, transform 320ms ease;
+    border-radius: var(--radius);
+    padding-left: 18px;
+    padding-right: 18px;
+    margin-left: -18px;
+    margin-right: -18px;
+}
+.audience-row:hover {
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0.75),
+        rgba(255,255,255,0.2));
+    transform: translateX(4px);
+}
+.audience-link {
+    position: relative;
+    overflow: hidden;
+}
+.audience-link::after {
+    content: '→';
+    margin-left: 8px;
+    transition: transform var(--dur) ease;
+    display: inline-block;
+}
+.audience-link:hover::after { transform: translateX(4px); }
+
+/* ==========================================================================
+   Closing CTA — deep cosmic band with glow
+   ========================================================================== */
+.closing {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+.closing::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+        radial-gradient(40% 60% at 20% 30%, rgba(235,194,84,0.22), transparent 70%),
+        radial-gradient(38% 54% at 80% 70%, rgba(65,110,74,0.28), transparent 70%);
+    pointer-events: none;
+}
+.closing::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+        linear-gradient(to right, rgba(238,243,229,0.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(238,243,229,0.06) 1px, transparent 1px);
+    background-size: 36px 36px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+.closing-in { position: relative; z-index: 1; }
+
+.closing h2 {
+    background: linear-gradient(180deg, #ffffff 0%, #eef3e5 70%, #ebc254 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.closing-actions .btn-primary {
+    background: linear-gradient(180deg, var(--tertiary-fixed) 0%, var(--tertiary-fixed-dim) 100%);
+    color: var(--on-tertiary-fixed);
+    border-color: transparent;
+    box-shadow:
+        0 10px 30px -8px rgba(235,194,84,0.55),
+        0 1px 0 rgba(255,255,255,0.35) inset;
+}
+.closing-actions .btn-primary:hover {
+    background: linear-gradient(180deg, #ffeaa3 0%, var(--tertiary-fixed-dim) 100%);
+    box-shadow:
+        0 14px 38px -8px rgba(235,194,84,0.7),
+        0 1px 0 rgba(255,255,255,0.4) inset;
+    transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   Logo / wordmark marquee (if present)
+   ========================================================================== */
+.marquee {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+            mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+}
+.marquee-track {
+    display: flex;
+    gap: 48px;
+    white-space: nowrap;
+    animation: marquee 28s linear infinite;
+    width: max-content;
+}
+.marquee-item {
+    font: 600 var(--fs-label-lg)/1 var(--font-label);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    opacity: 0.75;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.marquee-item i {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--tertiary-fixed-dim);
+}
+@keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
+
+/* ==========================================================================
+   Pipeline card — subtle glow
+   ========================================================================== */
+.pipeline-card {
+    background: linear-gradient(135deg, #ffffff 0%, var(--surface-container-low) 100%) !important;
+}
+
+/* ==========================================================================
+   Entrance refinements — JS will add .is-hero-in but CSS gracefully degrades.
+   Keep the existing reveal contract intact.
+   ========================================================================== */
+.js-motion .hero-kicker,
+.js-motion .hero-copy h1,
+.js-motion .hero-pitch,
+.js-motion .hero-chip,
+.js-motion .hero-actions,
+.js-motion .ledger {
+    /* app.js already fades these in; add subtle blur out. */
+    filter: blur(0);
+    transition: opacity 850ms ease,
+                transform 850ms cubic-bezier(0.22,1,0.36,1),
+                filter 850ms ease;
+}
+
+/* ==========================================================================
+   Motion preferences — keep it calm when asked
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    .hero::before { animation: none; opacity: 0.7; }
+    .hero-grid::before,
+    .hero-grid::after { animation: none; opacity: 0.3; }
+    .marquee-track { animation: none; }
+    .hero-kicker i { animation: none; }
+    .card-tag::before { animation: none; }
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (max-width: 940px) {
+    .ledger { transform: none; }
+    .hero-grid::before, .hero-grid::after { opacity: 0.35; }
+}
+@media (max-width: 620px) {
+    .trust-in { justify-content: flex-start; }
+    .trust-stats { gap: 18px; }
+}
