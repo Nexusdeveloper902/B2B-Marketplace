@@ -1,12 +1,12 @@
 <?php
 
 return [
-    'meta_title' => 'Presence Platform — every card tap becomes a record',
+    'meta_title' => 'Pulse — every card tap becomes a record',
     'meta_description' => 'Presence-event infrastructure for schools and organizations. One NFC card, one tap, one timestamped event: attendance, meal tracking, and recycling incentives.',
 
     'hero' => [
         'headline' => 'Every card tap becomes a record you can trust.',
-        'pitch' => 'Presence Platform is presence-event infrastructure: one NFC card, one tap, one timestamped event. Attendance, meal service, and recycling incentives all read from the same stream.',
+        'pitch' => 'Pulse is presence-event infrastructure: one NFC card, one tap, one timestamped event. Attendance, meal service, and recycling incentives all read from the same stream.',
         'cta_primary' => 'See it in action',
         'cta_secondary' => 'Request a demo',
         'kicker' => 'presence-event infrastructure',

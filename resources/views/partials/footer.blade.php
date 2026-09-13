@@ -3,8 +3,8 @@
         <div class="footer-grid">
             <div class="footer-brand">
                 <a class="wordmark wordmark-footer" href="{{ route('landing') }}">
-                    <span class="wordmark-tap" aria-hidden="true"></span>
-                    <span class="wordmark-name">Presence<em>Platform</em></span>
+                    <img class="wordmark-mark" src="{{ asset('brand/mark-cream-96.png') }}" alt="" width="42" height="30">
+                    <span class="wordmark-name">{{ __('common.wordmark') }}</span>
                 </a>
                 <p class="footer-note">{{ __('common.footer.note') }}</p>
             </div>

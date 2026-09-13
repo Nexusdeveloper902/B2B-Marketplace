@@ -81,3 +81,12 @@ EN/ES toggle in the header switches locale (session-persisted). All copy lives i
   (owner bench commit) native 90/90 + 3 envs SUCCESS; ESP32-CAM-CV
   5c62dc1 pytest 114/1-skip + build ±secrets SUCCESS. Every claim of
   the latest commits reproduces.
+
+## RUN-2026-09-12-marketplace-016 — Pulse brand adoption (appended facts)
+- Storefront rebranded to Pulse per the owner's productization pass:
+  real mark in header (ink) and footer (cream mono variant), full
+  favicon/PWA/OG head + manifest, lang EN+ES sweep, READMEs,
+  APP_NAME "Pulse Marketplace". Placeholder favicon.svg deleted.
+- Suite 20/20 (PagesTest now pins "Pulse"). Uncommitted; Core's
+  RUN-2026-09-12-core-036 + ADR-047 carry the family-wide identity
+  contract; this repo's ADR-017 records the storefront adoption.

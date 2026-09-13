@@ -2,11 +2,11 @@
 
 return [
     'meta_title' => 'Product — how a tap becomes a record',
-    'meta_description' => 'One card, one tap, one timestamped event: the Presence Platform pipeline from NFC card and reader to the event platform and dashboards.',
+    'meta_description' => 'One card, one tap, one timestamped event: the Pulse pipeline from NFC card and reader to the event platform and dashboards.',
 
     'hero' => [
         'headline' => 'One card. One tap. One timestamped event.',
-        'body' => 'The core of Presence Platform is a single, small data shape: who tapped, where, at exactly what time, and what the tap counts as. Everything the platform offers — attendance sheets, meal tallies, incentive programs, dashboards — is built on that one record.',
+        'body' => 'The core of Pulse is a single, small data shape: who tapped, where, at exactly what time, and what the tap counts as. Everything the platform offers — attendance sheets, meal tallies, incentive programs, dashboards — is built on that one record.',
     ],
 
     'pipeline' => [

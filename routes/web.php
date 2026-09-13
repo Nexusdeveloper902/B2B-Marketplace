@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Presence Platform — Marketplace Storefront
+| Pulse — Marketplace Storefront
 |--------------------------------------------------------------------------
 | Five public pages plus the locale toggle and the contact form submission.
 | No auth, no cart, no checkout, no vendor accounts (see .agent/PROJECT.md).

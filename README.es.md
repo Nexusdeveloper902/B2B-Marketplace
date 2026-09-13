@@ -1,6 +1,6 @@
-# Presence Platform — Escaparate del Marketplace
+# Pulse — Escaparate del Marketplace
 
-El escaparate de marketing/ventas de **Presence Platform**, el producto NFC
+El escaparate de marketing/ventas de **Pulse**, el producto NFC
 de eventos de presencia para escuelas/empresas (asistencia, seguimiento de
 comidas PAE, incentivos de reciclaje, seguimiento de eventos
 personalizados). Este sitio VENDE el producto — deliberadamente no ES el

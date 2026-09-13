@@ -14,7 +14,8 @@ class PagesTest extends TestCase
             $response = $this->get($path);
 
             $response->assertOk();
-            $response->assertSee('Presence', false);
+            // Productization pass — the storefront is Pulse-branded.
+            $response->assertSee('Pulse', false);
         }
     }
 

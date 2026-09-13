@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Presence Platform — Marketplace Storefront
+   Pulse — Marketplace Storefront
    Design system v3 "Datum" (TASK-013, ADR-015)
    Supersedes "Signal" v2 (ADR-014 -> ADR-015, append-only).
    Pattern reference: the Core dashboards' Datum system (light sage
@@ -316,12 +316,13 @@ code, pre { font-family: var(--font-mono); }
 }
 .wordmark:hover { text-decoration: none; }
 
-.wordmark-tap {
-    width: 12px;
-    height: 12px;
-    border-radius: var(--radius-sm);
-    background: var(--tertiary-fixed-dim);
-    box-shadow: inset 0 0 0 2.5px var(--bg), inset 0 0 0 3.5px var(--tertiary-fixed-dim);
+/* The real Pulse mark. The storefront header is light; the footer is
+   dark — the cream mono variant keeps the mark visible there. */
+.wordmark-mark {
+    height: 26px;
+    width: auto;
+    display: inline-block;
+    flex-shrink: 0;
 }
 
 .wordmark-name {
@@ -1311,7 +1312,7 @@ code, pre { font-family: var(--font-mono); }
 }
 .footer .wordmark { color: var(--text-inverse); }
 .footer .wordmark-name { color: var(--text-inverse); }
-.footer .wordmark-name em { color: var(--tertiary-fixed); }
+
 .footer-note {
     margin-top: 14px;
     font: 400 var(--fs-body-sm)/var(--lh-body-sm) var(--font-body);

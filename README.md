@@ -1,6 +1,6 @@
-# Presence Platform — Marketplace Storefront
+# Pulse — Marketplace Storefront
 
-The marketing/sales storefront for **Presence Platform**, a school/enterprise NFC
+The marketing/sales storefront for **Pulse**, a school/enterprise NFC
 presence-event product (attendance, PAE meal tracking, recycling incentives,
 custom event tracking). This site sells the product — it is deliberately not the
 product itself, and it has no dependency on the core platform's backend or

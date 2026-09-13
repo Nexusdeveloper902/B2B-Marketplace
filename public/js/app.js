@@ -1,5 +1,5 @@
 /**
- * Presence Platform — Marketplace Storefront
+ * Pulse — Marketplace Storefront
  * Motion layer (TASK-012, 2026-09-06). anime.js v4.5.0, self-hosted ESM.
  *
  * Architecture:

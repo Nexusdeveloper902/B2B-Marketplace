@@ -2,11 +2,11 @@
 
 return [
     'meta_title' => 'Producto — cómo un toque se convierte en un registro',
-    'meta_description' => 'Una tarjeta, un toque, un evento con marca de tiempo: el recorrido de Presence Platform desde la tarjeta NFC y el lector hasta la plataforma de eventos y los paneles.',
+    'meta_description' => 'Una tarjeta, un toque, un evento con marca de tiempo: el recorrido de Pulse desde la tarjeta NFC y el lector hasta la plataforma de eventos y los paneles.',
 
     'hero' => [
         'headline' => 'Una tarjeta. Un toque. Un evento con marca de tiempo.',
-        'body' => 'El núcleo de Presence Platform es una estructura de datos pequeña: quién tocó, dónde, a qué hora exacta y qué cuenta ese toque. Todo lo que ofrece la plataforma — listas de asistencia, totales de comidas, programas de incentivos, paneles — se construye sobre ese único registro.',
+        'body' => 'El núcleo de Pulse es una estructura de datos pequeña: quién tocó, dónde, a qué hora exacta y qué cuenta ese toque. Todo lo que ofrece la plataforma — listas de asistencia, totales de comidas, programas de incentivos, paneles — se construye sobre ese único registro.',
     ],
 
     'pipeline' => [

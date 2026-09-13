@@ -1,8 +1,8 @@
 <header class="topbar">
     <div class="shell topbar-in">
         <a class="wordmark" href="{{ route('landing') }}" aria-label="{{ __('common.wordmark') }}">
-            <span class="wordmark-tap" aria-hidden="true"></span>
-            <span class="wordmark-name">Presence<em>Platform</em></span>
+            <img class="wordmark-mark" src="{{ asset('brand/mark-96.png') }}" alt="" width="42" height="30">
+            <span class="wordmark-name">{{ __('common.wordmark') }}</span>
         </a>
 
         <nav class="topnav" aria-label="{{ __('nav.primary') }}">

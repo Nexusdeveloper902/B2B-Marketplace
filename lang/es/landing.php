@@ -1,12 +1,12 @@
 <?php
 
 return [
-    'meta_title' => 'Presence Platform — cada toque de tarjeta se convierte en un registro',
+    'meta_title' => 'Pulse — cada toque de tarjeta se convierte en un registro',
     'meta_description' => 'Infraestructura de eventos de presencia para escuelas y organizaciones. Una tarjeta NFC, un toque, un evento con marca de tiempo: asistencia, seguimiento de comidas e incentivos de reciclaje.',
 
     'hero' => [
         'headline' => 'Cada toque de tarjeta se convierte en un registro confiable.',
-        'pitch' => 'Presence Platform es infraestructura de eventos de presencia: una tarjeta NFC, un toque, un evento con marca de tiempo. La asistencia, el servicio de comidas y los incentivos de reciclaje leen del mismo flujo.',
+        'pitch' => 'Pulse es infraestructura de eventos de presencia: una tarjeta NFC, un toque, un evento con marca de tiempo. La asistencia, el servicio de comidas y los incentivos de reciclaje leen del mismo flujo.',
         'cta_primary' => 'Véalo en acción',
         'cta_secondary' => 'Solicitar una demo',
         'kicker' => 'infraestructura de eventos de presencia',

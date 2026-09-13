@@ -5,7 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', __('common.title_default'))</title>
     <meta name="description" content="@yield('description', __('common.description_default'))">
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    {{-- Pulse brand suite: real mark favicons, PWA icons, manifest --}}
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('brand/favicon-32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('brand/favicon-16.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('brand/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <meta name="theme-color" content="#E8EDDF">
+    <meta property="og:site_name" content="{{ __('common.wordmark') }}">
+    <meta property="og:image" content="{{ asset('brand/og-image.png') }}">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     {{-- Motion gate: flags motion availability before first paint so reveal

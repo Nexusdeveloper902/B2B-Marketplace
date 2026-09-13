@@ -2,7 +2,7 @@
 
 return [
     'meta_title' => 'Solicitar una demo',
-    'meta_description' => 'Solicita una demostración de Presence Platform: asistencia, seguimiento de comidas PAE e incentivos de reciclaje con un toque de tarjeta NFC.',
+    'meta_description' => 'Solicita una demostración de Pulse: asistencia, seguimiento de comidas PAE e incentivos de reciclaje con un toque de tarjeta NFC.',
 
     'hero' => [
         'title' => 'Solicite una demo.',
