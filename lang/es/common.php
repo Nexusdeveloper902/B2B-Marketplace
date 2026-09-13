@@ -14,4 +14,8 @@ return [
         'copyright' => '2026 Pulse. Todos los derechos reservados.',
         'built' => 'Para escuelas, campus y empresas.',
     ],
+
+    'not_found_title' => 'Página no encontrada',
+    'not_found_body' => 'La página que pediste no existe o fue movida.',
+    'not_found_cta' => 'Volver al inicio',
 ];

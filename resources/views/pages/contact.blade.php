@@ -28,7 +28,7 @@
                 </ol>
             </div>
 
-            <form class="contact-form" method="POST" action="{{ route('contact.store') }}">
+            <form class="contact-form" method="POST" action="{{ route('contact.store') }}" autocomplete="off">
                 @csrf
 
                 @if ($errors->any())
@@ -50,7 +50,7 @@
                         name="name"
                         value="{{ old('name') }}"
                         required
-                        autocomplete="name"
+                        autocomplete="off"
                         @class(['is-invalid' => $errors->has('name')])
                     >
                     @error('name')<p class="field-error" role="alert">{{ $message }}</p>@enderror
@@ -64,7 +64,7 @@
                         name="email"
                         value="{{ old('email') }}"
                         required
-                        autocomplete="email"
+                        autocomplete="off"
                         @class(['is-invalid' => $errors->has('email')])
                     >
                     @error('email')<p class="field-error" role="alert">{{ $message }}</p>@enderror
@@ -78,7 +78,7 @@
                         name="organization"
                         value="{{ old('organization') }}"
                         required
-                        autocomplete="organization"
+                        autocomplete="off"
                         @class(['is-invalid' => $errors->has('organization')])
                     >
                     @error('organization')<p class="field-error" role="alert">{{ $message }}</p>@enderror

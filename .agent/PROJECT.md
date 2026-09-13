@@ -90,3 +90,29 @@ EN/ES toggle in the header switches locale (session-persisted). All copy lives i
 - Suite 20/20 (PagesTest now pins "Pulse"). Uncommitted; Core's
   RUN-2026-09-12-core-036 + ADR-047 carry the family-wide identity
   contract; this repo's ADR-017 records the storefront adoption.
+
+## RUN-2026-09-13-marketplace-017 — Landing panel fix + translations + 404 (appended facts)
+
+- Owner items: gate-reader panel position, translations, search.
+- `.tap-visual` centers the card+reader pair (bounded clamp gap, 28px
+  insets) — the reader no longer hugs the panel's right border;
+  `ledgerLoop.distance()` measures the real offsetLeft gap so the card
+  still stops just short of the reader at every width.
+- Landing demo strings translated: `identify_join_prefix/event`,
+  `stamp_recorded` (EN/ES). Suite 20/20.
+- Branded localized 404 added (errors/404.blade.php + `.nf-*` CSS +
+  `common.not_found_*` keys) — unknown URLs no longer render Laravel's
+  bare page.
+
+## RUN-2026-09-13-marketplace-017 follow-up — global box-sizing reset
+- Owner corrected the panel: the Tap/Toque DEMO card's gate reader was
+  OUTSIDE the demo frame. Root cause: the storefront never had a global
+  `box-sizing: border-box` (content-box default) — width:100% + 48px
+  padding made `.demo-tap-stage` 47px wider than `#demo-tap`, clipping
+  the reader. Global reset added; the three per-element copies remain
+  (harmless).
+- Post-reset sweep caught /product @ 390px +26px: `.closing-in` grid
+  blowout (minmax(0,1fr) fix) and the nowrap closing CTA with the long
+  ES label (scoped white-space: normal).
+- Verified: demo reader 25px inside the frame; 6 URLs × 3 widths = 0
+  overflow; suite 20/20.

@@ -136,7 +136,7 @@
                         <div class="demo-id-pair" aria-hidden="true">
                             <span class="demo-id-chip id-card"><i></i>0441</span>
                             <span class="demo-id-chip id-reader"><i></i>GATE-A</span>
-                            <span class="demo-id-join">who + where = <b>one event</b></span>
+                            <span class="demo-id-join">{{ __('landing.demo.identify_join_prefix') }} <b>{{ __('landing.demo.identify_join_event') }}</b></span>
                         </div>
                     </div>
                     <pre class="card-snippet">{ card: <b>0441</b>, reader: <b>GATE-A</b> }</pre>
@@ -156,7 +156,7 @@
                             </div>
                         </div>
                     </div>
-                    <pre class="card-snippet">07:58:12 <span class="s">&rarr;</span> <b>recorded</b></pre>
+                    <pre class="card-snippet">07:58:12 <span class="s">&rarr;</span> <b>{{ __('landing.demo.stamp_recorded') }}</b></pre>
                 </article>
 
                 {{-- Step 4: Report — tallies build themselves --}}

@@ -20,6 +20,13 @@
    aliases only. WCAG pairs are audited by scripts/contrast_audit.py.
    ========================================================================== */
 
+/* The sizing reset the storefront never had (owner bug report
+   2026-09-13: the Tap demo's stage overflowed its frame by its own
+   padding — CSS's default content-box counts padding OUTSIDE
+   width:100%). border-box is the standard contract; the three
+   per-element copies below become redundant but harmless. */
+*, *::before, *::after { box-sizing: border-box; }
+
 :root {
     /* ---- palette (Datum M3 tonal, verbatim values from Core) ---- */
     --background:                  #f6fbed;
@@ -583,14 +590,17 @@ code, pre { font-family: var(--font-mono); }
     border-radius: var(--radius-sm);
 }
 
-/* tap-visual: card travels to the reader, go-light pulses */
+/* tap-visual: card travels to the reader, go-light pulses.
+   The pair is CENTERED with a bounded gap — space-between pinned the
+   reader to the panel's right border, where at wide viewports it read
+   as cut off against the edge (owner report, 2026-09-13). */
 .tap-visual {
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 26px 20px;
-    gap: 24px;
+    justify-content: center;
+    padding: 26px 28px;
+    gap: clamp(48px, 16%, 150px);
     overflow: hidden;
     background:
         linear-gradient(to bottom, var(--surface-container-low), var(--surface-container-lowest));
@@ -1277,10 +1287,13 @@ code, pre { font-family: var(--font-mono); }
 }
 .closing-in {
     display: grid;
-    grid-template-columns: 1fr auto;
+    /* minmax(0, …) — the plain 1fr track floored at the items'
+       min-content and blew past the shell on phones (grid blowout). */
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: clamp(28px, 5vw, 64px);
 }
+.closing-in > div { min-width: 0; overflow-wrap: break-word; }
 .closing h2 { color: var(--text-inverse); }
 .closing p {
     font: 400 var(--fs-body-lg)/var(--lh-body-lg) var(--font-body);
@@ -1292,6 +1305,13 @@ code, pre { font-family: var(--font-mono); }
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
+}
+/* The closing CTA's label is long (ES: "Cómo funciona el seguimiento
+   personalizado") — nowrap buttons can't shrink below their text and
+   blew past the shell on phones. */
+.closing-actions .btn {
+    white-space: normal;
+    text-align: center;
 }
 
 /* ==========================================================================
@@ -1924,7 +1944,7 @@ code, pre { font-family: var(--font-mono); }
     .flow, .apps { grid-template-columns: 1fr; }
     .audience-row { grid-template-columns: 1fr; gap: 14px; }
     .audience-link { justify-self: start; }
-    .closing-in { grid-template-columns: 1fr; }
+    .closing-in { grid-template-columns: minmax(0, 1fr); }
     .footer-grid { grid-template-columns: 1fr; }
     .widget { padding: 18px; }
     .widget-foot { flex-direction: column; align-items: flex-start; }
@@ -1935,3 +1955,16 @@ code, pre { font-family: var(--font-mono); }
     .demo-report-row { grid-template-columns: 1fr auto; }
     .demo-report-row .demo-report-bar { grid-column: 1 / -1; order: 3; }
 }
+
+/* ---------- 404 (productization pass 2026-09-13) ----------
+   The storefront had no error view — unknown URLs fell through to
+   Laravel's bare page. Branded, localized, one way out. */
+.nf-wrap { text-align: left; max-width: 640px; }
+.nf-code {
+    font: 700 64px/1 var(--font-display);
+    letter-spacing: -0.02em;
+    color: var(--tertiary-fixed-dim);
+    margin: 0 0 8px;
+}
+.nf-wrap h1 { margin: 0 0 10px; }
+.nf-text { color: var(--text-muted); margin: 0 0 24px; }

@@ -147,10 +147,13 @@ function ledgerLoop() {
     if (!stage || !card || !target || rows.length === 0) return;
 
     const distance = () => {
-        const stageW = stage.clientWidth;
-        const cardW = card.offsetWidth;
-        const targetW = target.offsetWidth;
-        return Math.max(40, stageW - 40 - cardW - targetW - 10);
+        // The real layout gap between card and reader (offsetLeft is
+        // transform-free, so a mid-flight animation can't poison the
+        // measure) minus a 14px stop-short margin. With the centered
+        // pair this equals the flex gap; it also stays correct if the
+        // layout changes again.
+        const gap = target.offsetLeft - (card.offsetLeft + card.offsetWidth);
+        return Math.max(40, gap - 14);
     };
 
     /* Row cycling is a chained callback: a 1ms object tween inside the
