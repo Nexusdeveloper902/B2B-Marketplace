@@ -16,6 +16,56 @@ de anime.js sigue funcionando porque su contrato en tiempo de ejecución
 de estilos. El copy bilingüe EN/ES quedó intacto (auditoría de
 contenido: 86/86 elementos presentes).
 
+## Capa marketplace (TASK-014, ADR-018)
+
+La tienda ahora se presenta como un **catálogo** en lugar de una sola
+página de producto — misma paleta Datum, mismo copy, nueva estructura:
+
+| Página | Patrón de marketplace |
+|---|---|
+| Todas | Barra utilitaria oscura (audiencia + EN/ES), barra superior con botón **Cotización** + contador, pie de cuatro columnas con columna de catálogo |
+| `/` | Panel hero oscuro destacado (el registro, inclinado), cinta con las etiquetas de evento que aparecen en el sitio, mosaicos de categoría, **estante de paquetes** con fichas de alcance (lectores/tarjetas/aplicaciones), la banda del widget de paquetes, **tarjetas de módulo** de aplicaciones (insignias "Incluido en" tomadas de las listas de cada paquete), un **estante desplazable de casos de uso** con registros tipo recibo, las demos en vivo, la sección del problema, mosaicos de audiencia |
+| `/pricing` | Hero con ruta de navegación, fichas de paquete (`#tier-starter/campus/enterprise`), una **matriz comparativa** en la que cada celda es una línea de característica existente |
+| `/product` | Diseño de detalle de producto: escenario (tarjeta → lector → evento guardado) con miniaturas de estaciones, **caja de compra** fija con selector de paquete que hace GET a `/contact?tier=…` (funciona sin JS), sub-navegación fija |
+| `/enterprise` | Hero oscuro con la lista "incluye" como caja de compra, casos de uso como tarjetas de catálogo |
+| `/contact` | Pasos construidos con los títulos existentes de "qué pasa después", formulario + resumen lateral |
+
+**Sin datos de producto nuevos.** `lang/*/store.php` solo contiene
+etiquetas de navegación y controles ("Compare los paquetes", "Agregar a
+cotización"…). Cada paquete, modelo de precio, característica,
+aplicación y caso de uso mostrado sale de los archivos existentes
+`landing/product/pricing/enterprise/contact`; una comparación de cada
+cadena de idioma preexistente (EN y ES) contra las páginas nuevas las
+encontró todas presentes. Dos derivaciones de presentación, ambas de
+copy ya publicado: las fichas de alcance reutilizan las cifras del
+widget (`1/200/1`, `2–10/2.000/3`, `∞/∞/3+`), y las insignias "Incluido
+en" leen las listas de los paquetes (Starter = asistencia; Campus añade
+PAE + reciclaje; las "3+" aplicaciones publicadas de Enterprise).
+
+**Lista de cotización (`public/js/store.js`).** Una lista por visitante
+en `localStorage` (protegida; respaldo en memoria). *No es un carrito*:
+no tiene precios, no se compra nada, y lo dice en su propio texto. Su
+única salida es el formulario de contacto existente — un mensaje
+prellenado con los elementos y el paquete preseleccionado cuando hay
+exactamente uno en la lista. Nada nuevo llega al servidor (ADR-013 se
+mantiene). Los botones de agregar se envían `hidden` y JS los muestra,
+así que sin JS no hay controles muertos; sin JS el botón del encabezado
+es un enlace a `/contact`. `store.js` corre también con movimiento
+reducido (es interacción, no animación). El servidor también respeta
+`?tier=` en `/contact` (valores desconocidos se ignoran; `old()` gana).
+
+Contrato de animación sin cambios: cada gancho de `app.js` (`#demo-*`,
+`#package-widget`, `.ledger*`, `.tap-*`, `.hero-*`) se sigue
+renderizando; la inclinación del registro vive en un envoltorio
+`.ledger-tilt` porque `heroEntrance()` escribe un transform en línea
+sobre `.ledger`.
+
+Tokens nuevos (`:root`): `--ink-inverse-muted/-faint`, `--line-inverse`,
+`--wash-inverse`, `--glow-data/-gold`, `--glass`, `--scrim`, `--panel`,
+`--shadow-deep` — todos mezclas de tonos Datum existentes. Se añadieron
+nueve pares a `scripts/contrast_audit.py` (`--ink-inverse-faint` subió
+de 0.52 a 0.58 para cumplir AA).
+
 ## Referencia de diseño (datos rápidos para trabajo futuro)
 
 - Fondo `#f6fbed` salvia; texto `#181d15`; acción casi-negro `#0e0f0e`;
@@ -51,7 +101,7 @@ de honestidad).
 
 ### C — Comercio (la brecha literal del "marketplace")
 
-- **C1 — Carrito.** No existe carrito alguno; los CTA de los paquetes
+- **C1 — Carrito.** *(Nota TASK-014: ahora existe una **lista de cotización** del lado del cliente — sin precios ni pago, su única salida es una solicitud prellenada en `/contact`; no cierra esta brecha.)* No existe carrito alguno; los CTA de los paquetes
   llevan al formulario de contacto, no a un carrito. *Por qué:* tienda
   de un solo vendedor por paquetes que se vende por conversación
   (no-meta explícita en `.agent/PROJECT.md`: sin carrito/checkout).

@@ -68,6 +68,16 @@ PAIRS = [
     ("tertiary-fixed on primary (featured tier)",     "#ffdf93", "#0e0f0e", 4.5),
     ("#d3d8cb on primary (tier feats .88)",           "#d3d8cb", "#0e0f0e", 4.5),
     ("tertiary-fixed on primary (ledger card id)",    "#ffdf93", "#0e0f0e", 4.5),
+    # TASK-014 marketplace layer (alpha tokens flattened onto their darkest/lightest real ground)
+    ("marketplace: ink-inverse-muted on inverse-surface (panel copy)", "#bcc1b4", "#2d3229", 4.5),
+    ("marketplace: ink-inverse-muted on primary (utility bar)", "#b4b8ad", "#0e0f0e", 4.5),
+    ("marketplace: ink-inverse-faint on inverse-surface (receipt/panel meta)", "#9da296", "#2d3229", 4.5),
+    ("marketplace: tertiary-fixed on inverse-surface (panel accents)", "#ffdf93", "#2d3229", 4.5),
+    ("marketplace: data-tint on inverse-surface (receipt label)", "#d5e4d7", "#2d3229", 4.5),
+    ("marketplace: data-strong on data-tint (included/label chips)", "#2f5238", "#d5e4d7", 4.5),
+    ("marketplace: on-tertiary-fixed-variant on tertiary-fixed (listing kicker)", "#594400", "#ffdf93", 4.5),
+    ("marketplace: on-tertiary-fixed on tertiary-fixed (gold button/name)", "#241a00", "#ffdf93", 4.5),
+    ("marketplace: on-primary on data-solid (added-to-quote)", "#ffffff", "#35573b", 4.5),
 ]
 
 fails = []

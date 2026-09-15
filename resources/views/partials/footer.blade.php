@@ -9,6 +9,14 @@
                 <p class="footer-note">{{ __('common.footer.note') }}</p>
             </div>
 
+            <nav class="footer-col" aria-label="{{ __('store.categories.title') }}">
+                <h2 class="footer-heading">{{ __('store.categories.title') }}</h2>
+                <a href="{{ route('pricing') }}">{{ __('store.categories.packages') }}</a>
+                <a href="{{ route('landing') }}#applications">{{ __('store.categories.apps') }}</a>
+                <a href="{{ route('enterprise') }}">{{ __('store.categories.cases') }}</a>
+                <a href="{{ route('product') }}">{{ __('store.categories.how') }}</a>
+            </nav>
+
             <nav class="footer-col" aria-label="{{ __('common.footer.site') }}">
                 <h2 class="footer-heading">{{ __('common.footer.site') }}</h2>
                 <a href="{{ route('product') }}">{{ __('nav.product') }}</a>

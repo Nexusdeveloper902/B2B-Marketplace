@@ -27,6 +27,9 @@
         } catch (e) { /* no motion flags without JS APIs */ }
     </script>
     <script type="module" src="{{ asset('js/app.js') }}"></script>
+    {{-- Quote list + shelf controls: interaction, not motion — runs under
+         reduced-motion too (TASK-014). --}}
+    <script type="module" src="{{ asset('js/store.js') }}"></script>
 </head>
 <body data-page="@yield('page', 'default')">
     <a class="skip" href="#main">{{ __('nav.skip') }}</a>
@@ -38,5 +41,6 @@
     </main>
 
     @include('partials.footer')
+    @include('partials.quote-drawer')
 </body>
 </html>

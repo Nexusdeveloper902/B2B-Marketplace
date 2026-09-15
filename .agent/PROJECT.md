@@ -116,3 +116,13 @@ EN/ES toggle in the header switches locale (session-persisted). All copy lives i
   ES label (scoped white-space: normal).
 - Verified: demo reader 25px inside the frame; 6 URLs × 3 widths = 0
   overflow; suite 20/20.
+
+## TASK-014 additions (2026-09-15)
+
+- **Marketplace catalog layer (ADR-018)**: the site is structured as a
+  catalog (listings, comparison matrix, PDP buy box, use-case shelf) on
+  the unchanged Datum palette. Copy stays in the existing lang files;
+  `store.php` is UI labels only — never add product facts there.
+- **Quote list** is client-side only (localStorage) and outputs a
+  prefilled `/contact` request; it is not a cart and must not grow
+  prices or checkout without a new ADR (ADR-013 still binds).

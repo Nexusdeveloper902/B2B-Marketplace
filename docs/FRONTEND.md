@@ -14,6 +14,53 @@ keeps working because its runtime contract (the `--data / --data-solid /
 verbatim in the new stylesheet. Bilingual EN/ES copy is untouched
 (content audit: 86/86 items present).
 
+## Marketplace layer (TASK-014, ADR-018)
+
+The storefront is now presented as a **catalog** instead of a single
+product page — same Datum palette, same copy, new structure:
+
+| Page | Marketplace pattern |
+|---|---|
+| All | Dark utility bar (audience + EN/ES), topbar with a **Quote list** button + count badge, four-column footer with a catalog column |
+| `/` | Featured dark hero panel (the ledger, tilted), a ticker of the event labels that appear on the site, category tiles, a package **listing shelf** with spec chips (readers/cards/applications), the package widget band, application **module cards** ("Included in" badges from the tier lists), a scrollable **use-case shelf** with receipt-style event records, the live demos, the problem section, audience tiles |
+| `/pricing` | Breadcrumb hero, package listings (`#tier-starter/campus/enterprise`), a **comparison matrix** whose every cell is an existing feature line |
+| `/product` | Product-detail layout: gallery stage (card → reader → stored event) with station thumbnails, sticky **buy box** with a package picker that GETs `/contact?tier=…` (works without JS), sticky sub-nav |
+| `/enterprise` | Dark hero with the "includes" list as a buy box, use cases as catalog cards |
+| `/contact` | Stepper built from the existing "what happens next" titles, form + order-summary aside |
+
+**No new product facts.** `lang/*/store.php` holds only navigation and
+control labels ("Compare packages", "Add to quote"…). Every package,
+price model, feature, application and use case shown comes from the
+existing `landing/product/pricing/enterprise/contact` files; a
+render-diff of every pre-existing lang string (EN and ES) against the
+new pages found all of them still present. Two presentational
+derivations, both from already-published copy: the spec chips reuse the
+landing widget's numbers (`1/200/1`, `2–10/2,000/3`, `∞/∞/3+`), and the
+"Included in" badges read the tier lists (Starter = attendance; Campus
+adds PAE + recycling; Enterprise's published "3+" applications).
+
+**Quote list (`public/js/store.js`).** A per-visitor list in
+`localStorage` (guarded; in-memory fallback). It is *not a cart*: it has
+no prices, nothing is bought, and it says so in its own copy. Its only
+output is the existing contact form — a prefilled message listing the
+items, and the package preselected when exactly one is in the list.
+Nothing new reaches the server (ADR-013 holds). The add buttons ship
+`hidden` and are revealed by JS, so no-JS visitors see no dead controls;
+the header button is a plain link to `/contact` without JS. `store.js`
+runs under reduced motion (it is interaction, not animation). The server
+also honours `?tier=` on `/contact` (unknown values ignored; `old()` wins).
+
+Motion contract unchanged: every `app.js` hook (`#demo-*`,
+`#package-widget`, `.ledger*`, `.tap-*`, `.hero-*`) is still rendered;
+the ledger tilt lives on a `.ledger-tilt` wrapper because
+`heroEntrance()` writes an inline transform on `.ledger`.
+
+New tokens (`:root`): `--ink-inverse-muted/-faint`, `--line-inverse`,
+`--wash-inverse`, `--glow-data/-gold`, `--glass`, `--scrim`, `--panel`,
+`--shadow-deep` — all mixes of existing Datum hues. Nine pairs were
+added to `scripts/contrast_audit.py` (`--ink-inverse-faint` was raised
+from 0.52 to 0.58 to clear AA).
+
 ## Design reference (quick facts for future work)
 
 - Ground `#f6fbed` sage; text `#181d15`; action near-black `#0e0f0e`;
@@ -46,7 +93,7 @@ omits it or states the truth (see the honesty floor notes).
 
 ### C — Commerce (the literal "marketplace" gap)
 
-- **C1 — Cart.** No cart exists anywhere; the pricing page's tier CTAs
+- **C1 — Cart.** *(TASK-014 note: a client-side **quote list** now exists — no prices, no checkout, its only output is a prefilled `/contact` request; it is not this gap closed.)* No cart exists anywhere; the pricing page's tier CTAs
   route to the contact form ("Request quote / Get started"), not a cart.
   *Why absent:* a single-vendor, tiered-package storefront that sells by
   conversation (`.agent/PROJECT.md` explicit non-goal: no cart/checkout).
